@@ -42,14 +42,6 @@ export class FeedbacksService {
     return { feedback: feedback.toJSON() };
   }
 
-  findAll() {
-    return `This action returns all feedbacks`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} feedback`;
-  }
-
   update(id: number, updateFeedbackDto: UpdateFeedbackDto) {
     return `This action updates a #${id} feedback`;
   }
