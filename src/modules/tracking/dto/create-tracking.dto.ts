@@ -18,8 +18,7 @@ export class CreateTracking {
 
   @ApiProperty()
   @IsNumber()
-  @IsOptional()
-  statusId?: number;
+  statusId: number;
 
   @ApiProperty()
   @IsEnum(Status)

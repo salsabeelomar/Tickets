@@ -5,6 +5,7 @@ import { User } from '../user/entities/user.entity';
 import { Ticket } from '../ticket/entities/ticket.entity';
 import { TicketStatus } from '../ticket-status/entities/ticket-status.entity';
 import { Tracking } from '../tracking/entities/tracking.entity';
+import { Feedback } from '../feedbacks/entities/feedback.entity';
 
 export const databaseProvider = {
   provide: DATABASE,
@@ -18,7 +19,7 @@ export const databaseProvider = {
         underscored: true,
       },
     });
-    sequelize.addModels([User, Tracking, Ticket, TicketStatus]);
+    sequelize.addModels([User, Tracking, Ticket, TicketStatus, Feedback]);
     await sequelize.sync();
     return sequelize;
   },

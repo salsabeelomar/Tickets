@@ -24,7 +24,6 @@ import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { GenerateToken } from '../auth/dto/generate-Token.dto';
 
-@UseInterceptors(CacheInterceptor)
 @UseInterceptors(TransactionInter)
 @Controller('ticket')
 export class TicketController {
@@ -43,6 +42,7 @@ export class TicketController {
     return this.ticketService.create(createTicketDto, user, trans);
   }
 
+  @UseInterceptors(CacheInterceptor)
   @Role(Roles.Support_Staff, Roles.Admin)
   @Get()
   findAll() {
@@ -86,5 +86,15 @@ export class TicketController {
       user.id,
       trans,
     );
+  }
+
+  @Get('resolved-issues')
+  getResolved(
+    @User() user: GenerateToken,
+    @TransactionDeco() trans: Transaction,
+  ) {
+    console.log('jwjwjw');
+    console.log('=========================================');
+    return this.ticketService.getClosedTic(trans);
   }
 }

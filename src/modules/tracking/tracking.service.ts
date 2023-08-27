@@ -20,7 +20,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TICKET_EVENTS } from 'src/common/events/ticket.events';
 import { TicketStatus } from '../ticket-status/entities/ticket-status.entity';
 import { User } from '../user/entities/user.entity';
-import { Ticket } from '../ticket/entities/ticket.entity';
 import { GenerateToken } from '../auth/dto/generate-Token.dto';
 
 @Injectable()
@@ -39,6 +38,15 @@ export class TrackingService {
     user: GenerateToken,
     transaction: Transaction,
   ) {
+    const checkConfirm = await this.ticketService.CheckConfirm(
+      addStatus.ticketId,
+    );
+
+    CheckExisting(checkConfirm, BadRequestException, {
+      msg: "The Ticket isn't Confirmed or Closed ",
+      trace: 'TrackingService.matchStatus',
+    });
+
     CheckExisting(
       !(
         user.role === Roles.Support_Staff &&
@@ -60,23 +68,45 @@ export class TrackingService {
     ) {
       return this.assignOrUnAssign(addStatus, user, transaction);
     }
+    {
+      await this.create(
+        {
+          statusId: addStatus.statusId,
+          comments: JSON.stringify(addStatus?.comments || []),
+          ticketId: addStatus.ticketId,
+          scheduleFor: addStatus.scheduleFor || null,
+          [roleId]: user.id,
+          createdBy: user.id,
+        },
+        transaction,
+      );
 
-    await this.create(
+      await this.notify(
+        { id: addStatus.ticketId, userId: user.id, status: addStatus.status },
+        addStatus?.comments || [],
+        transaction,
+      );
+    }
+    console.log({
+      staffId: addStatus.assignedFor,
+      [roleId]: user.id,
+      updatedBy: user.id,
+    });
+    const updateStaff = await this.ticketService.updateForSupport(
+      addStatus.ticketId,
       {
+        staffId: addStatus.assignedFor,
         statusId: addStatus.statusId,
-        comments: JSON.stringify(addStatus?.comments || []),
-        ticketId: addStatus.ticketId,
-        scheduleFor: addStatus.scheduleFor || null,
         [roleId]: user.id,
-        createdBy: user.id,
+        updatedBy: user.id,
       },
       transaction,
     );
-    await this.notify(
-      { id: addStatus.ticketId, userId: user.id, status: addStatus.status },
-      addStatus?.comments || [],
-      transaction,
-    );
+
+    CheckExisting(updateStaff[0], BadRequestException, {
+      msg: 'Tickets Failed To Updated',
+      trace: 'TicketsService.updatedOne',
+    });
     this.logger.log(
       `Create Status ${addStatus.status} for Ticket ${addStatus.ticketId}`,
     );
@@ -105,16 +135,6 @@ export class TrackingService {
     );
     this.logger.log(`${addStatus.status} for Ticket ${addStatus.ticketId}`);
 
-    const updateStaff = await this.ticketService.updateForSupport(
-      addStatus.ticketId,
-      {
-        staffId: addStatus.assignedFor,
-        adminId: user.id,
-        updatedBy: user.id,
-      },
-      transaction,
-    );
-
     await this.notify(
       {
         id: addStatus.ticketId,
@@ -124,10 +144,6 @@ export class TrackingService {
       [],
       transaction,
     );
-    CheckExisting(updateStaff[0], BadRequestException, {
-      msg: 'Tickets Failed To Updated',
-      trace: 'TicketsService.updatedOne',
-    });
 
     return {
       status: addStatus.status,
@@ -137,7 +153,7 @@ export class TrackingService {
   }
 
   async openTicket(
-    addStatus: CreateTracking,
+    addStatus: Omit<CreateTracking, 'statusId'>,
     userId: number,
     transaction: Transaction,
   ) {
@@ -175,7 +191,7 @@ export class TrackingService {
       transaction,
     });
     CheckExisting(!checkCreated, BadRequestException, {
-      msg: ` this all ready exist in same staff and create By `,
+      msg: ` this all ready exist in same staff and created By `,
       trace: `Tracking.create`,
     });
     const addAction = await this.trackingRepo.create(att, { transaction });
@@ -209,7 +225,6 @@ export class TrackingService {
       },
       transaction,
     );
-
     CheckExisting(confirmTic[0], BadRequestException, {
       msg: 'Tickets Failed To Accept',
       trace: 'TicketsService.confirmTicket',

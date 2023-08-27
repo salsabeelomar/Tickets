@@ -80,6 +80,9 @@ export class TicketService {
           attributes: ['id', 'status'],
         },
       ],
+      where: {
+        isConfirm: true,
+      },
     });
     this.logger.log(`Get All Tickets ${getAllTicket.length}`);
     return {
@@ -153,7 +156,7 @@ export class TicketService {
 
   async getTicById(id: number, transaction?: Transaction) {
     const getTic = await this.ticketRepo.findByPk(id, {
-      attributes: ['title', 'description', 'userId', 'createdAt'],
+      attributes: ['title', 'description', 'userId', 'isConfirm', 'createdAt'],
       include: [
         {
           model: User,
@@ -164,6 +167,11 @@ export class TicketService {
           model: User,
           as: 'staff',
           attributes: ['email', 'id', 'username'],
+        },
+        {
+          model: TicketStatus,
+
+          attributes: ['status'],
         },
       ],
     });
@@ -197,6 +205,7 @@ export class TicketService {
         createdAt: {
           [Op.between]: [querySearch.startDate, querySearch.endDate],
         },
+        isConfirm: true,
       },
       transaction,
     });
@@ -226,8 +235,54 @@ export class TicketService {
           },
         },
       ],
+      where: {
+        isConfirm: true,
+      },
       transaction,
     });
     return { searched };
+  }
+
+  async getClosedTic(transaction?: Transaction) {
+    const getTic = await this.ticketRepo.findAll({
+      // attributes: ['id', 'title', 'description', 'statusId', 'createdAt'],
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['email', 'id', 'username'],
+        },
+        {
+          model: TicketStatus,
+          attributes: ['status'],
+
+          // where: {
+          //   status: { [Op.or]: [Status.Resolved, Status.Closed] },
+          // },
+        },
+      ],
+
+      transaction,
+    });
+    this.logger.log(`Get Ticket with Id`);
+    return getTic;
+  }
+
+  async CheckConfirm(ticketId: number) {
+    const checkCon = await this.ticketRepo.findByPk(ticketId, {
+      attributes: ['isConfirm'],
+      include: [
+        {
+          model: TicketStatus,
+          attributes: ['status'],
+          where: {
+            status: Status.Closed,
+          },
+        },
+      ],
+    });
+    this.logger.log(`Checking the Ticket Is Confirmed ..`);
+
+    return checkCon?.isConfirm;
   }
 }
