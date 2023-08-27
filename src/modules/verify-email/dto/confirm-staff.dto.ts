@@ -1,20 +1,18 @@
-import {
-    IsEmail,
-    IsString,
-    IsNotEmpty,
-  } from 'class-validator';
-  
-  export class activeStaff {
-    @IsEmail()
-    @IsNotEmpty()
-    email: string;
-  
-    @IsString()
-    @IsNotEmpty()
-    activeToken: string;
+import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+export class activeStaff {
+  @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 
-    @IsString()
-    @IsNotEmpty()
-    declineToken: string;
-  }
-  
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  activeToken: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  declineToken: string;
+}

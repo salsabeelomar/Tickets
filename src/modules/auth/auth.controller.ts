@@ -11,18 +11,19 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { Public } from 'src/common/decorator/public.decorator';
 import { NotActive } from 'src/common/decorator/isActive.decorator';
-import { Role } from 'src/common/decorator/role.decorator';
-import { Roles } from 'src/common/types/Roles.types';
-import { User } from 'src/common/decorator/user.decorator';
 import { Transaction } from 'sequelize';
 import { TransactionDeco } from 'src/common/decorator/transaction.decorator';
 import { TransactionInter } from 'src/common/interceptor/Transaction.interceptor';
 
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+@ApiTags('Auth')
 @UseInterceptors(TransactionInter)
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Sign Up new User' })
+  @ApiResponse({ status: 200, description: 'Sign Up new User' })
   @NotActive()
   @Public()
   @Post('signup')
@@ -43,6 +44,8 @@ export class AuthController {
     return this.authService.signIn(loginAuthDto, trans);
   }
 
+  @ApiOperation({ summary: 'Sign In User' })
+  @ApiResponse({ status: 200, description: 'Sign In User' })
   @NotActive()
   @Public()
   @Get('confirm')
@@ -53,14 +56,15 @@ export class AuthController {
     return await this.authService.verifyUser(token, trans, true);
   }
 
-
-    @NotActive()
-    @Public()
-    @Get('add-staff')
-    async confirmStaff(
-      @Query('token') token: string,
-      @TransactionDeco() trans: Transaction,
-    ) {
-      return await this.authService.verifyUser(token, trans, true);
-    }
+  @ApiOperation({ summary: 'Verify User Email' })
+  @ApiResponse({ status: 200, description: 'Verify User Email' })
+  @NotActive()
+  @Public()
+  @Get('add-staff')
+  async confirmStaff(
+    @Query('token') token: string,
+    @TransactionDeco() trans: Transaction,
+  ) {
+    return await this.authService.verifyUser(token, trans, true);
+  }
 }

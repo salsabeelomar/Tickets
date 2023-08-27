@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, Inject } from '@nestjs/common';
-import { UpdateDashboardDto } from './dto/update-dashboard.dto';
+
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { CreateAuthDto } from '../auth/dto/create-auth.dto';
 import { Transaction } from 'sequelize';

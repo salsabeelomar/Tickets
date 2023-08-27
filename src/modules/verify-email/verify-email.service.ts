@@ -6,11 +6,15 @@ import { activeStaff } from './dto/confirm-staff.dto';
 import { Status } from 'src/common/types/status.types';
 import { ConfirmTic } from './dto/confirm-ticket.dto';
 import { ResponseTick } from './dto/receive-response.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class VerifyEmailService {
   private readonly logger = new WinstonLogger();
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async sendConfirmUser(user: EmailDto) {
     try {
@@ -19,7 +23,11 @@ export class VerifyEmailService {
         from: 'noreply@nestjs.com',
         subject: 'Verify Email from Tickets',
         text: `Hello ${user.lname} ${user.fname}`,
-        html: `<b>welcome ${user.lname} ${user.fname} <a href=http://localhost:3000/api/v1/auth/confirm?token=${user.token}> Confirmation  Link </a> </b>`,
+        html: `<b>welcome ${user.lname} ${
+          user.fname
+        } <a href=${this.configService.get('confirmUser')}?token=${
+          user.token
+        }> Confirmation  Link </a> </b>`,
       });
       this.logger.log(`Send Email for user ${user.lname} ${user.fname} `);
     } catch (error) {
@@ -36,16 +44,16 @@ export class VerifyEmailService {
       html: `
        <h3> Confirm Your Tickets</h3>
        <div>
-       <button> <a href=http://localhost:3000/api/v1/auth/add-staff?token=${confirmStaff.activeToken}> Confirm </a> </button>
-       <button> <a href=http://localhost:3000/api/v1/auth/add-staff?token=${confirmStaff.declineToken}> Decline </a> </button>
+       <button> <a href=${this.configService.get('confirmTicket')}?token=${
+        confirmStaff.activeToken
+      }> Confirm </a> </button>
+       <button> <a href=${this.configService.get('confirmTicket')}?token=${
+        confirmStaff.declineToken
+      }> Decline </a> </button>
        </div>`,
     });
-    console.log(
-      `http://localhost:3000/api/v1/auth/add-staff?token=${confirmStaff.activeToken}`,
-    );
-    this.logger.log(`Send Email for user ${confirmStaff.email} `);
 
-    return;
+    this.logger.log(`Send Email for user ${confirmStaff.email} `);
   }
 
   async sendConfirmTicket(confirmTic: ConfirmTic) {
@@ -57,8 +65,16 @@ export class VerifyEmailService {
       html: `<h1>welcome ${confirmTic.username}</h1>
        <h3> Confirm Your Tickets</h3>
        <div>
-       <button> <a href=http://localhost:3000/api/v1/tracking/confirm?isConfirm=accept&ticketId=${confirmTic.ticketId}> Confirm </a> </button>
-       <button> <a href=http://localhost:3000/api/v1/tracking/confirm?isConfirm=decline&ticketId=${confirmTic.ticketId}> Decline </a> </button>
+       <button> <a href=${this.configService.get(
+         'confirmStaff',
+       )}?isConfirm=accept&ticketId=${
+        confirmTic.ticketId
+      }> Confirm </a> </button>
+       <button> <a href=${this.configService.get(
+         'confirmStaff',
+       )}?isConfirm=decline&ticketId=${
+        confirmTic.ticketId
+      }> Decline </a> </button>
        </div>`,
     });
     this.logger.log(` Confirm Your Tickets ${confirmTic.username}`);

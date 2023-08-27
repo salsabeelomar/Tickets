@@ -11,4 +11,7 @@ export const config = () => ({
     host: process.env.DB_HOST,
   },
   JwtSecret: process.env.JWT_SECRET,
+  confirmStaff: process.env.CONFIRM_STAFF,
+  confirmUser: process.env.CONFIRM_USER,
+  confirmTicket: process.env.CONFIRM_TICKET,
 });

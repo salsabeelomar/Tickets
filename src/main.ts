@@ -37,10 +37,10 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
   Swagger(app);
-  const job = new CronJob('00 00 12 * * *', async () => {
-    await trackingService.getLateSchedule();
-  });
-  job.start();
+  // const job = new CronJob('00 00 12 * * *', async () => {
+  //   await trackingService.getLateSchedule();
+  // });
+  // job.start();
   await app.listen(3000);
 }
 bootstrap();
