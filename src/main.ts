@@ -17,7 +17,6 @@ async function bootstrap() {
   const app = await NestFactory.create<INestApplication>(AppModule, {
     logger: new WinstonLogger(),
   });
-  const trackingService = app.get<TrackingService>(TrackingService);
 
   const jwt = app.get<JwtService>(JwtService);
   const userService = app.get<UserService>(UserService);
@@ -37,10 +36,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
   Swagger(app);
-  // const job = new CronJob('00 00 12 * * *', async () => {
-  //   await trackingService.getLateSchedule();
-  // });
-  // job.start();
+
   await app.listen(3000);
 }
 bootstrap();

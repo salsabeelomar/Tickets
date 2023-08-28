@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -16,6 +17,7 @@ import { TrackingModule } from './modules/tracking/tracking.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationModule } from './modules/notifacition/notification.module';
+import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { NotificationModule } from './modules/notifacition/notification.module';
     TrackingModule,
     DashboardModule,
     NotificationModule,
+    FeedbacksModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],
