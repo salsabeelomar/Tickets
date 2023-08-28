@@ -31,15 +31,15 @@ export class FeedbacksController {
     return this.feedbacksService.create(createFeedbackDto, user.id, trans);
   }
 
-  @Get()
-  findAll() {
-    return this.feedbacksService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.feedbacksService.findAll();
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.feedbacksService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.feedbacksService.findOne(+id);
+  // }
 
   @Patch(':id')
   update(

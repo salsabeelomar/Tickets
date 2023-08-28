@@ -100,16 +100,14 @@ export class VerifyEmailService {
     });
     this.logger.log(` Your Tickets Has Response from  Ticket Staff `);
   }
-  sendLateEmails(getSchedule) {
-    return getSchedule.map(async (ele) => {
-      await this.mailerService.sendMail({
-        to: ele.staff?.email,
-        from: 'noreply@nestjs.com',
-        subject: `You Have schedule Tickets `,
-        html: `<h1>welcome ${ele.staff?.username}</h1>
+  sendLateEmails(staff) {
+    this.logger.log(` You Have schedule Tickets `);
+    return this.mailerService.sendMail({
+      to: staff.email,
+      from: 'noreply@nestjs.com',
+      subject: `You Have schedule Tickets `,
+      html: `<h1>welcome ${staff.username}</h1>
        <h3> You Have schedule Tickets   </h3>`,
-      });
-      this.logger.log(` You Have schedule Tickets `);
     });
   }
 }

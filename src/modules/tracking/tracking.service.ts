@@ -4,12 +4,13 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { CreateTracking } from './dto/create-tracking.dto';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { Providers } from 'src/common/constant/providers.constant';
 import { Tracking } from './entities/tracking.entity';
 import { TicketStatusService } from '../ticket-status/ticket-status.service';
-import { Op, Transaction, literal } from 'sequelize';
+import { Op, Transaction, col, literal } from 'sequelize';
 import { CheckExisting } from 'src/common/utils/checkExisting';
 import { Roles } from 'src/common/types/Roles.types';
 import { Status } from 'src/common/types/status.types';
@@ -283,39 +284,62 @@ export class TrackingService {
       });
     }
   }
-  async getLateSchedule() {
-    const getSchedule = await this.trackingRepo.findAll({
-      attributes: ['createdAt', 'comments'],
+
+  @Cron('0 * * * * *')
+  async getLateAssign() {
+    await this.getLogicOfLate(Status.Assigned);
+    await this.getLogicOfLate(Status.Scheduled);
+  }
+
+  async getLogicOfLate(status: Status) {
+    const getSearched = await this.trackingRepo.findAll({
+      attributes: ['createdAt', 'id', 'ticketId', 'sendEmail'],
       include: [
         {
           model: TicketStatus,
-          attributes: ['createdAt', 'id'],
+          as: 'status',
+          attributes: ['status', 'id'],
           where: {
-            status: {
-              [Op.notLike]: Status.Scheduled,
-            },
+            status,
           },
         },
         {
           model: User,
-          attributes: ['username', 'email', 'id'],
           as: 'staff',
-          where: {
-            status: {
-              [Op.notLike]: Status.Scheduled,
-            },
-          },
+          attributes: ['email', 'username', 'id'],
         },
       ],
       where: {
-        createdAt: {
-          [Op.gt]: literal('`tracking`.`schedule_for` + INTERVAL 2 DAY '),
+        staffId: {
+          [Op.not]: null,
         },
       },
     });
 
-    this.verifyEmailService.sendLateEmails(getSchedule);
-    this.logger.log(`Get Schedule Ticket`);
-    return getSchedule;
+    getSearched.map(async (record) => {
+      const operation = await this.trackingRepo.findOne({
+        attributes: ['id'],
+        where: {
+          createdAt: { [Op.gt]: record['createdAt'] },
+          ticketId: record['ticketId'],
+        },
+      });
+
+      if (!operation && !record.sendEmail) {
+        this.verifyEmailService.sendLateEmails(record.staff);
+        await this.trackingRepo.update(
+          {
+            sendEmail: true,
+          },
+          {
+            where: {
+              id: record['id'],
+            },
+          },
+        );
+      }
+
+      return operation;
+    });
   }
 }
