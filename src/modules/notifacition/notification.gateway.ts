@@ -31,7 +31,7 @@ export class NotificationService
   private readonly logger = new WinstonLogger();
   constructor(
     private jwt: JwtService,
-    private userService: UserService, // @Inject() private addressService: AddressService,
+    private userService: UserService,
   ) {}
   @WebSocketServer()
   server: Server;
