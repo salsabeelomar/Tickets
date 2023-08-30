@@ -8,7 +8,7 @@ import { VerifyEmailService } from '../verify-email/verify-email.service';
 @Module({
   imports: [DatabaseModule],
   controllers: [TicketController],
-  providers: [TicketService, TicketProvider, VerifyEmailService,],
-  exports: [TicketService, TicketProvider, VerifyEmailService],
+  providers: [TicketService, ...TicketProvider, VerifyEmailService],
+  exports: [TicketService, ...TicketProvider, VerifyEmailService],
 })
 export class TicketModule {}

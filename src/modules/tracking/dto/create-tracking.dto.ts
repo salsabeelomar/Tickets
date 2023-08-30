@@ -8,7 +8,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Status } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/status.types';
 import { ApiProperty } from '@nestjs/swagger';
 export class CreateTracking {
   @ApiProperty()
@@ -21,8 +21,8 @@ export class CreateTracking {
   statusId: number;
 
   @ApiProperty()
-  @IsEnum(Status)
-  status: Status = Status.Open;
+  @IsEnum(STATUS)
+  status: STATUS = STATUS.OPEN;
 
   @ApiProperty()
   @IsNumber()

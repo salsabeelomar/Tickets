@@ -8,7 +8,7 @@ import {
   IsBoolean,
   MinLength,
 } from 'class-validator';
-import { Roles } from 'src/common/types/Roles.types';
+import { ROLES } from 'src/common/types/Roles.types';
 
 export class GenerateToken {
   @IsInt()
@@ -28,6 +28,6 @@ export class GenerateToken {
   @MinLength(3)
   username: string;
 
-  @IsEnum(Roles)
-  role: Roles;
+  @IsEnum(ROLES)
+  role: ROLES;
 }

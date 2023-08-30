@@ -1,20 +1,20 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { CreateAuthDto } from '../auth/dto/create-auth.dto';
 import { Transaction } from 'sequelize';
 import { CheckExisting } from 'src/common/utils/checkExisting';
 import * as bcrypt from 'bcrypt';
-import { Providers } from 'src/common/constant/providers.constant';
+import { PROVIDER } from 'src/common/constant/providers.constant';
 import { UserService } from '../user/user.service';
 import { VerifyEmailService } from '../verify-email/verify-email.service';
-import { User } from '../user/entities/user.entity';
+import { User } from '../user/models/user.model';
 
 @Injectable()
 export class DashboardService {
   private readonly winstonLogger = new WinstonLogger();
   constructor(
-    @Inject(Providers.USER) private readonly userRepo: typeof User,
+    @Inject(PROVIDER.USER) private readonly userRepo: typeof User,
     private readonly userService: UserService,
     private readonly verifyEmail: VerifyEmailService,
   ) {}
@@ -25,7 +25,7 @@ export class DashboardService {
   ) {
     const getEmail = await this.userService.getUserByEmail(staff.email);
 
-    CheckExisting(!getEmail, BadRequestException, {
+    CheckExisting(!getEmail, {
       msg: 'Email is Existing',
       trace: 'AuthService.signUp',
     });
@@ -74,10 +74,6 @@ export class DashboardService {
       userId,
       transaction,
     );
-    CheckExisting(removedUser[0], BadRequestException, {
-      msg: 'Failed To Delete Staff',
-      trace: 'DashboardService.remove',
-    });
 
     return 'Staff Deleted Successfully ';
   }

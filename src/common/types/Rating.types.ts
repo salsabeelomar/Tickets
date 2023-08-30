@@ -1,7 +1,7 @@
-export enum Rating {
-  One = 1,
-  Two = 2,
-  Three = 3,
-  Tour = 4,
-  Five =5,
+export enum RATING {
+  ONE = 1,
+  TWO = 2,
+  THREE = 3,
+  FOUR = 4,
+  FIVE =5,
 }

@@ -1,9 +1,9 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { CreateTicketStatusDto } from './dto/create-ticket-status.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
-import { Providers } from 'src/common/constant/providers.constant';
-import { TicketStatus } from './entities/ticket-status.entity';
-import { Status } from 'src/common/types/status.types';
+import { PROVIDER } from 'src/common/constant/providers.constant';
+import { TicketStatus } from './models/ticket-status.model';
+import { STATUS } from 'src/common/types/status.types';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { Transaction } from 'sequelize';
 import { CheckExisting } from 'src/common/utils/checkExisting';
@@ -11,13 +11,13 @@ import { CheckExisting } from 'src/common/utils/checkExisting';
 export class TicketStatusService {
   private readonly logger = new WinstonLogger();
   constructor(
-    @Inject(Providers.STATUS) private readonly statusRepo: typeof TicketStatus,
+    @Inject(PROVIDER.STATUS) private readonly statusRepo: typeof TicketStatus,
   ) {}
   create(createTicketStatusDto: CreateTicketStatusDto) {
     return 'This action adds a new ticketStatus';
   }
 
-  async findOne(status: Status, transaction: Transaction): Promise<number> {
+  async findOne(status: STATUS, transaction: Transaction): Promise<number> {
     const getStatus = await this.statusRepo.findOne({
       attributes: ['id'],
       where: {
@@ -25,7 +25,7 @@ export class TicketStatusService {
       },
       transaction,
     });
-    CheckExisting(getStatus, BadRequestException, {
+    CheckExisting(getStatus, {
       msg: 'Status Not Found',
       trace: 'TicketStatusService',
     });

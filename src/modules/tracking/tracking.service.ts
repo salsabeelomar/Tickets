@@ -1,33 +1,26 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Injectable, Inject } from '@nestjs/common';
 import { CreateTracking } from './dto/create-tracking.dto';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
-import { Providers } from 'src/common/constant/providers.constant';
-import { Tracking } from './entities/tracking.entity';
+import { PROVIDER } from 'src/common/constant/providers.constant';
+import { Tracking } from './models/tracking.model';
 import { TicketStatusService } from '../ticket-status/ticket-status.service';
-import { Op, Transaction, col, literal } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 import { CheckExisting } from 'src/common/utils/checkExisting';
-import { Roles } from 'src/common/types/Roles.types';
-import { Status } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/status.types';
 import { TicketService } from '../ticket/ticket.service';
 import { VerifyEmailService } from '../verify-email/verify-email.service';
 import { ConfirmTicket } from '../ticket/dto/confirm-ticket.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TICKET_EVENTS } from 'src/common/events/ticket.events';
-import { TicketStatus } from '../ticket-status/entities/ticket-status.entity';
-import { User } from '../user/entities/user.entity';
+import { TicketStatus } from '../ticket-status/models/ticket-status.model';
+import { User } from '../user/models/user.model';
 import { GenerateToken } from '../auth/dto/generate-Token.dto';
 
 @Injectable()
 export class TrackingService {
   private readonly logger = new WinstonLogger();
   constructor(
-    @Inject(Providers.TRACKING) private readonly trackingRepo: typeof Tracking,
+    @Inject(PROVIDER.TRACKING) private readonly trackingRepo: typeof Tracking,
     private readonly StatusService: TicketStatusService,
     private readonly ticketService: TicketService,
     private readonly verifyEmailService: VerifyEmailService,
@@ -43,29 +36,29 @@ export class TrackingService {
       addStatus.ticketId,
     );
 
-    CheckExisting(checkConfirm, BadRequestException, {
+    CheckExisting(checkConfirm, {
       msg: "The Ticket isn't Confirmed or Closed ",
       trace: 'TrackingService.matchStatus',
     });
 
-    CheckExisting(
-      !(
-        user.role === Roles.Support_Staff &&
-        (addStatus.status == Status.UnAssigned ||
-          addStatus.status == Status.Assigned)
-      ),
-      ForbiddenException,
-      {
-        msg: ' Staff tried to UnAssigned OR Assigned Ticket',
-        trace: 'TrackingService.addStatus',
-      },
-    );
+    // CheckExisting(
+    //   !(
+    //     user.role === ROLES.SUPPORT_STAFF &&
+    //     (addStatus.status == STATUS.ASSIGNED ||
+    //       addStatus.status == STATUS.UNASSIGNED)
+    //   ),
+    //   ForbiddenException,
+    //   {
+    //     msg: ' Staff tried to UnAssigned OR Assigned Ticket',
+    //     trace: 'TrackingService.addStatus',
+    //   },
+    // );
 
     const roleId = `${user.role.toLowerCase()}Id`;
 
     if (
-      addStatus.status == Status.UnAssigned ||
-      addStatus.status == Status.Assigned
+      addStatus.status == STATUS.ASSIGNED ||
+      addStatus.status == STATUS.UNASSIGNED
     ) {
       return this.assignOrUnAssign(addStatus, user, transaction);
     }
@@ -104,10 +97,6 @@ export class TrackingService {
       transaction,
     );
 
-    CheckExisting(updateStaff[0], BadRequestException, {
-      msg: 'Tickets Failed To Updated',
-      trace: 'TicketsService.updatedOne',
-    });
     this.logger.log(
       `Create Status ${addStatus.status} for Ticket ${addStatus.ticketId}`,
     );
@@ -191,7 +180,7 @@ export class TrackingService {
       },
       transaction,
     });
-    CheckExisting(!checkCreated, BadRequestException, {
+    CheckExisting(!checkCreated, {
       msg: ` this all ready exist in same staff and created By `,
       trace: `Tracking.create`,
     });
@@ -211,7 +200,7 @@ export class TrackingService {
 
     const openTic = await this.openTicket(
       {
-        status: Status.Open,
+        status: STATUS.OPEN,
         ticketId: confirm.ticketId,
       },
       userId,
@@ -226,10 +215,6 @@ export class TrackingService {
       },
       transaction,
     );
-    CheckExisting(confirmTic[0], BadRequestException, {
-      msg: 'Tickets Failed To Accept',
-      trace: 'TicketsService.confirmTicket',
-    });
 
     this.eventEmitter.emit(TICKET_EVENTS.CREATE, {
       userId,
@@ -257,8 +242,8 @@ export class TrackingService {
       });
     }
     if (
-      ticket.status == Status.UnAssigned ||
-      ticket.status === Status.Assigned
+      ticket.status == STATUS.UNASSIGNED ||
+      ticket.status === STATUS.ASSIGNED
     ) {
       this.eventEmitter.emit(TICKET_EVENTS.ASSIGNMENT, {
         notifiedId: ticInfo.staff.id,
@@ -285,13 +270,7 @@ export class TrackingService {
     }
   }
 
-  @Cron('0 * * * * *')
-  async getLateAssign() {
-    await this.getLogicOfLate(Status.Assigned);
-    await this.getLogicOfLate(Status.Scheduled);
-  }
-
-  async getLogicOfLate(status: Status) {
+  async getLogicOfLate(status: STATUS) {
     const getSearched = await this.trackingRepo.findAll({
       attributes: ['createdAt', 'id', 'ticketId', 'sendEmail'],
       include: [

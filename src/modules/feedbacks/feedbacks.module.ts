@@ -7,6 +7,6 @@ import { TicketModule } from '../ticket/ticket.module';
 @Module({
   imports: [TicketModule],
   controllers: [FeedbacksController],
-  providers: [FeedbacksService, FeedbackProvider],
+  providers: [FeedbacksService, ...FeedbackProvider],
 })
 export class FeedbacksModule {}

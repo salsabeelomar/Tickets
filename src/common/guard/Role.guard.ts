@@ -1,19 +1,13 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  ForbiddenException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { CheckExisting } from '../utils/checkExisting';
-import { Roles } from '../types/Roles.types';
+import { ROLES } from '../types/Roles.types';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
   constructor(private readonly reflect: Reflector) {}
 
   async canActivate(context: ExecutionContext) {
-    const roles = this.reflect.get<Roles[]>('roles', context.getHandler());
+    const roles = this.reflect.get<ROLES[]>('roles', context.getHandler());
 
     if (!roles) {
       return true;

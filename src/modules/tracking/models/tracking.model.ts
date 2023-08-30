@@ -8,9 +8,9 @@ import {
   BelongsTo,
   Model,
 } from 'sequelize-typescript';
-import { TicketStatus } from 'src/modules/ticket-status/entities/ticket-status.entity';
-import { Ticket } from 'src/modules/ticket/entities/ticket.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { TicketStatus } from 'src/modules/ticket-status/models/ticket-status.model';
+import { Ticket } from 'src/modules/ticket/models/ticket.model';
+import { User } from 'src/modules/user/models/user.model';
 
 @Table({
   tableName: 'tracking',

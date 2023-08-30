@@ -3,7 +3,7 @@ import { GatewayTimeoutException, Injectable } from '@nestjs/common';
 import { EmailDto } from './dto/email.dto';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { activeStaff } from './dto/confirm-staff.dto';
-import { Status } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/status.types';
 import { ConfirmTic } from './dto/confirm-ticket.dto';
 import { ResponseTick } from './dto/receive-response.dto';
 import { ConfigService } from '@nestjs/config';
@@ -80,7 +80,7 @@ export class VerifyEmailService {
     this.logger.log(` Confirm Your Tickets ${confirmTic.username}`);
   }
 
-  async sendUpdateTicket(status: Status, user) {
+  async sendUpdateTicket(status: STATUS, user) {
     await this.mailerService.sendMail({
       to: user.email,
       from: 'noreply@nestjs.com',

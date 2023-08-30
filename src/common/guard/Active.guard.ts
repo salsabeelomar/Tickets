@@ -18,10 +18,12 @@ export class ActiveGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
 
-    CheckExisting(request.user?.isActive, ForbiddenException, {
-      msg: 'Please Activate Your Account',
-      trace: 'ActiveGuard',
-    });
+    if (request.user?.isActive)
+      throw new ForbiddenException({
+        msg: 'Please Activate Your Account',
+        trace: 'ActiveGuard',
+      });
+
     return true;
   }
 }

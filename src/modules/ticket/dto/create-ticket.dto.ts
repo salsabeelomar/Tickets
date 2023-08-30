@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsString } from 'class-validator';
-import { Prioritize } from 'src/common/types/Prioritizae.types';
-import { Category } from 'src/common/types/category.types';
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { PRIORITIZE } from 'src/common/types/Prioritize.types';
+import { CATEGORY } from 'src/common/types/category.types';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTicketDto {
@@ -15,9 +15,9 @@ export class CreateTicketDto {
   description: string;
 
   @ApiProperty()
-  @IsString()
+  @IsEnum(PRIORITIZE)
   @IsNotEmpty()
-  prioritize: Prioritize;
+  prioritize: PRIORITIZE;
 
   @ApiProperty()
   @IsString()
@@ -25,7 +25,7 @@ export class CreateTicketDto {
   tag: string;
 
   @ApiProperty()
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  category: Category;
+  categoryId: number;
 }

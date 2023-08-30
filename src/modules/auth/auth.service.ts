@@ -5,8 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { User } from '../user/entities/user.entity';
-import { Providers } from 'src/common/constant/providers.constant';
+import { User } from '../user/models/user.model';
+import { PROVIDER } from 'src/common/constant/providers.constant';
 import { UserService } from '../user/user.service';
 import { CheckExisting } from 'src/common/utils/checkExisting';
 import * as bcrypt from 'bcrypt';
@@ -16,45 +16,42 @@ import { GenerateToken } from './dto/generate-Token.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { VerifyEmailService } from 'src/modules/verify-email/verify-email.service';
 import { Transaction } from 'sequelize';
-import { Roles } from 'src/common/types/Roles.types';
+import { ROLES } from 'src/common/types/Roles.types';
 
 @Injectable()
 export class AuthService {
   private readonly winstonLogger = new WinstonLogger();
 
   constructor(
-    @Inject(Providers.USER) private readonly userRepo: typeof User,
+    @Inject(PROVIDER.USER) private readonly userRepo: typeof User,
     private readonly userService: UserService,
     private readonly jwt: JwtService,
     private readonly verifyEmail: VerifyEmailService,
   ) {}
 
   async signIn(user: LoginAuthDto, transaction: Transaction) {
-    const getEmail = await this.userService.getUserByEmail(user.email);
+    const getUser = await this.userService.getUserByEmail(user.email);
 
-    CheckExisting(getEmail, BadRequestException, {
+    CheckExisting(getUser, {
       msg: 'Email Not Existing',
       trace: 'AuthService.signUp',
     });
-    const getPass = await this.userRepo.findByPk(getEmail.id, {
-      attributes: ['id', 'password', 'email', 'username', 'role', 'isActive'],
-      transaction,
-    });
-    const isMatch = bcrypt.compareSync(user.password, getPass.password);
 
-    CheckExisting(isMatch, BadRequestException, {
+    const isMatch = bcrypt.compareSync(user.password, getUser.password);
+
+    CheckExisting(isMatch, {
       msg: 'Email or Password not Correct',
       trace: 'AuthService.signIn',
     });
     const userData: GenerateToken = {
-      id: getPass.id,
-      username: getPass.username,
-      email: getPass.email,
-      isActive: getPass.isActive,
-      role: getPass.role,
+      id: getUser.id,
+      username: getUser.username,
+      email: getUser.email,
+      isActive: getUser.isActive,
+      role: getUser.role,
     };
 
-    this.winstonLogger.log(` User with ID=${getPass.id} Signed `);
+    this.winstonLogger.log(` User with ID=${getUser.id} Signed `);
     return {
       ...userData,
       token: this.userService.generateToken(userData),
@@ -62,9 +59,9 @@ export class AuthService {
   }
 
   async signUp(user: CreateAuthDto, transaction: Transaction) {
-    const getEmail = await this.userService.getUserByEmail(user.email);
+    const getUser = await this.userService.getUserByEmail(user.email);
 
-    CheckExisting(!getEmail, BadRequestException, {
+    CheckExisting(!getUser, {
       msg: 'Email is Existing',
       trace: 'AuthService.signUp',
     });
@@ -122,21 +119,21 @@ export class AuthService {
           transaction,
         },
       );
-      CheckExisting(updateUser[0], BadRequestException, {
+      CheckExisting(updateUser[0], {
         msg: 'Failed To Activate the Account',
         trace: 'AuthService.verifyUser',
       });
       return 'Email Verify Successfully ';
     } else if (
       decoded.user.isActive === false &&
-      decoded.user.role === Roles.Support_Staff
+      decoded.user.role === ROLES.SUPPORT_STAFF
     ) {
       const deleteStaff = await this.userService.removeUser(
         decoded.sub,
         decoded.sub,
         transaction,
       );
-      CheckExisting(deleteStaff[0], BadRequestException, {
+      CheckExisting(deleteStaff[0], {
         msg: 'Failed To Delete Staff',
         trace: 'AuthService.verifyUser',
       });

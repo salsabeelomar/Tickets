@@ -1,6 +1,6 @@
-import { Roles } from '../types/Roles.types';
+import { ROLES } from '../types/Roles.types';
 
 export const ROOM = {
-  USER: Roles.User,
-  SUPPORT_STAFF: Roles.Support_Staff,
+  USER: ROLES.USER,
+  SUPPORT_STAFF: ROLES.SUPPORT_STAFF,
 };

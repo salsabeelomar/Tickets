@@ -1,9 +1,9 @@
-export enum Status {
-  Open = 'Open',
-  Closed = 'Closed',
-  Assigned = 'Assigned',
-  UnAssigned = 'UnAssigned',
-  Scheduled = 'Scheduled',
-  InProgress = 'InProgress',
-  Resolved = 'Resolved',
+export enum STATUS {
+  OPEN = 'Open',
+  CLOSED = 'Closed',
+  ASSIGNED = 'Assigned',
+  UNASSIGNED = 'unAssigned',
+  SCHEDULED = 'Scheduled',
+  INPROGRESS = 'InProgress',
+  RESOLVED = 'Resolved',
 }

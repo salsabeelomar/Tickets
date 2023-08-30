@@ -1,7 +1,6 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { Providers } from 'src/common/constant/providers.constant';
-import { User } from './entities/user.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { PROVIDER } from 'src/common/constant/providers.constant';
+import { User } from './models/user.model';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { CheckExisting } from 'src/common/utils/checkExisting';
 import { GenerateToken } from '../auth/dto/generate-Token.dto';
@@ -12,7 +11,7 @@ import { Transaction } from 'sequelize';
 export class UserService {
   private readonly winstonLogger = new WinstonLogger();
   constructor(
-    @Inject(Providers.USER) private readonly userRepo: typeof User,
+    @Inject(PROVIDER.USER) private readonly userRepo: typeof User,
     private readonly jwt: JwtService,
   ) {}
 
@@ -45,13 +44,13 @@ export class UserService {
     const user = await this.userRepo.findByPk(id, {
       attributes: ['id', 'role', 'username', 'email', 'isActive'],
     });
-    CheckExisting(user.email, NotFoundException, {
+    CheckExisting(user.email, {
       msg: 'User Not Found',
       trace: 'User.service',
     });
     return user.toJSON();
   }
- 
+
   async removeUser(id: number, userId: number, transaction: Transaction) {
     const deleteStaff = await this.userRepo.update(
       {

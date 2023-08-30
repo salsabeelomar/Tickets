@@ -14,14 +14,14 @@ import { GenerateToken } from '../auth/dto/generate-Token.dto';
 import { TransactionDeco } from 'src/common/decorator/transaction.decorator';
 import { User } from 'src/common/decorator/user.decorator';
 import { Transaction } from 'sequelize';
-import { Roles } from 'src/common/types/Roles.types';
+import { ROLES } from 'src/common/types/Roles.types';
 import { Role } from 'src/common/decorator/role.decorator';
 
 @Controller('feedbacks')
 export class FeedbacksController {
   constructor(private readonly feedbacksService: FeedbacksService) {}
 
-  @Role(Roles.User)
+  @Role(ROLES.USER)
   @Post()
   create(
     @Body() createFeedbackDto: CreateFeedbackDto,

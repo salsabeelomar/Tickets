@@ -25,15 +25,9 @@ export class AuthGuard implements CanActivate {
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest();
-    const token = request.headers.authorization?.split('Bearer ')[1];
-
-    CheckExisting(token, UnauthorizedException, {
-      msg: 'You must Login',
-      trace: 'AuthGuard',
-    });
 
     try {
-
+      const token = request.headers.authorization?.split('Bearer ')[1];
       const decoded = await this.jwtService.verifyAsync(token);
       const user = await this.userService.getUserById(decoded.sub);
 

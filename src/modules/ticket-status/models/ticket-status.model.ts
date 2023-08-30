@@ -8,8 +8,7 @@ import {
   BelongsTo,
   Model,
 } from 'sequelize-typescript';
-import { Status } from 'src/common/types/status.types';
-import { User } from 'src/modules/user/entities/user.entity';
+import { User } from 'src/modules/user/models/user.model';
 
 @Table({
   tableName: 'ticket_status',
@@ -23,11 +22,16 @@ export class TicketStatus extends Model {
   id: number;
 
   @Column({
-    type: DataType.ENUM(...Object.keys(Status)),
+    type: DataType.STRING,
     unique: true,
-    defaultValue: Status.Open,
   })
-  status: Status;
+  status: string;
+
+  @Column({
+    type: DataType.STRING,
+    unique: true,
+  })
+  Code: string;
 
   @ForeignKey(() => User)
   @Column({

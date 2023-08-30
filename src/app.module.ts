@@ -15,9 +15,9 @@ import { TicketModule } from './modules/ticket/ticket.module';
 import config from 'config/index.config';
 import { TrackingModule } from './modules/tracking/tracking.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { NotificationModule } from './modules/notifacition/notification.module';
+import { NotificationModule } from './modules/notification/notification.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
+import { TicketEmitterModule } from './modules/ticket-emitter/ticket-emitter.module';
 
 @Module({
   imports: [
@@ -33,7 +33,7 @@ import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
       ttl: 1000,
       isGlobal: true,
     }),
-    EventEmitterModule.forRoot(),
+    TicketEmitterModule,
     AuthModule,
     UserModule,
     VerifyEmailModule,

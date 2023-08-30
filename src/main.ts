@@ -9,9 +9,9 @@ import { AuthGuard } from './common/guard/Auth.guard';
 import { UserService } from './modules/user/user.service';
 import { ActiveGuard } from './common/guard/Active.guard';
 import { Swagger } from './common/utils/Swagger';
-import { CronJob } from 'cron';
-import { TrackingService } from './modules/tracking/tracking.service';
+
 import { ResponseInterceptor } from './common/interceptor/Response.interceptor';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create<INestApplication>(AppModule, {
@@ -21,6 +21,7 @@ async function bootstrap() {
   const jwt = app.get<JwtService>(JwtService);
   const userService = app.get<UserService>(UserService);
   const reflector = app.get<Reflector>(Reflector);
+  const configService = app.get<ConfigService>(ConfigService);
 
   app.enableCors({
     credentials: true,
@@ -37,6 +38,6 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   Swagger(app);
 
-  await app.listen(3000);
+  await app.listen(configService.get('Port'));
 }
 bootstrap();

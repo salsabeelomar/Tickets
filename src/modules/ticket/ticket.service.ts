@@ -1,16 +1,15 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transaction, Op } from 'sequelize';
 
-import { Providers } from 'src/common/constant/providers.constant';
+import { PROVIDER } from 'src/common/constant/providers.constant';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { TICKET_EVENTS } from 'src/common/events/ticket.events';
-import { Status } from 'src/common/types/status.types';
-import { CheckExisting } from 'src/common/utils/checkExisting';
+import { STATUS } from 'src/common/types/status.types';
 
-import { User } from '../user/entities/user.entity';
-import { TicketStatus } from '../ticket-status/entities/ticket-status.entity';
-import { Ticket } from './entities/ticket.entity';
+import { User } from '../user/models/user.model';
+import { TicketStatus } from '../ticket-status/models/ticket-status.model';
+import { Ticket } from './models/ticket.model';
 
 import { VerifyEmailService } from '../verify-email/verify-email.service';
 import { SearchTicketDto } from './dto/seacrh.dto';
@@ -21,7 +20,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 export class TicketService {
   private readonly logger = new WinstonLogger();
   constructor(
-    @Inject(Providers.TICKET) private readonly ticketRepo: typeof Ticket,
+    @Inject(PROVIDER.TICKET) private readonly ticketRepo: typeof Ticket,
     private readonly verifyEmailService: VerifyEmailService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
@@ -47,7 +46,7 @@ export class TicketService {
       id: newTicket.id,
       title: newTicket.title,
       description: newTicket.description,
-      category: newTicket.category,
+      category: newTicket.categoryId,
       tag: newTicket.tag,
     };
   }
@@ -118,7 +117,7 @@ export class TicketService {
     userId: number,
     transaction: Transaction,
   ) {
-    const updatedTic = await this.ticketRepo.update(
+    await this.ticketRepo.update(
       {
         ...updated,
         updatedBy: userId,
@@ -128,10 +127,6 @@ export class TicketService {
         transaction,
       },
     );
-    CheckExisting(updatedTic[0], BadRequestException, {
-      msg: 'Tickets Failed To Updated',
-      trace: 'TicketsService.updatedOne',
-    });
 
     const info = await this.getTicById(updated.id);
     this.eventEmitter.emit(TICKET_EVENTS.UPDATE, {
@@ -231,7 +226,7 @@ export class TicketService {
           model: TicketStatus,
           attributes: ['id', 'status'],
           where: {
-            status: Status.Open,
+            status: STATUS.OPEN,
           },
         },
       ],
@@ -276,7 +271,7 @@ export class TicketService {
           model: TicketStatus,
           attributes: ['status'],
           where: {
-            status: Status.Closed,
+            status: STATUS.CLOSED,
           },
         },
       ],

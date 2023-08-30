@@ -18,7 +18,7 @@ import { User } from 'src/common/decorator/user.decorator';
 import { Transaction } from 'sequelize';
 import { TransactionInter } from 'src/common/interceptor/Transaction.interceptor';
 import { Role } from 'src/common/decorator/role.decorator';
-import { Roles } from 'src/common/types/Roles.types';
+import { ROLES } from 'src/common/types/Roles.types';
 import { SearchTicketDto } from './dto/seacrh.dto';
 import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -32,7 +32,7 @@ export class TicketController {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  @Role(Roles.User)
+  @Role(ROLES.USER)
   @Post()
   create(
     @Body() createTicketDto: CreateTicketDto,
@@ -43,13 +43,13 @@ export class TicketController {
   }
 
   @UseInterceptors(CacheInterceptor)
-  @Role(Roles.Support_Staff, Roles.Admin)
+  @Role(ROLES.SUPPORT_STAFF, ROLES.ADMIN)
   @Get()
   findAll() {
     return this.ticketService.findAll();
   }
 
-  @Role(Roles.Support_Staff, Roles.User)
+  @Role(ROLES.SUPPORT_STAFF, ROLES.USER)
   @Get('open-ticket')
   async openTicket(@TransactionDeco() trans: Transaction) {
     const opened = await this.cacheManager.get('open-ticket');
@@ -62,7 +62,7 @@ export class TicketController {
     return getOpened;
   }
 
-  @Role(Roles.Support_Staff)
+  @Role(ROLES.SUPPORT_STAFF)
   @Get('search')
   search(
     @Query() query: SearchTicketDto,
@@ -72,7 +72,7 @@ export class TicketController {
     return this.ticketService.search(query, trans);
   }
 
-  @Role(Roles.User)
+  @Role(ROLES.USER)
   @Patch(':id')
   updatedOne(
     @Param('id', ParseIntPipe) id: number,
@@ -93,8 +93,6 @@ export class TicketController {
     @User() user: GenerateToken,
     @TransactionDeco() trans: Transaction,
   ) {
-    console.log('jwjwjw');
-    console.log('=========================================');
     return this.ticketService.getClosedTic(trans);
   }
 }

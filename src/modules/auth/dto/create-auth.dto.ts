@@ -6,7 +6,7 @@ import {
   IsEnum,
   IsNotEmpty,
 } from 'class-validator';
-import { Roles } from 'src/common/types/Roles.types';
+import { ROLES } from 'src/common/types/Roles.types';
 import { LoginAuthDto } from './login-auth.dto';
 import { ApiProperty } from '@nestjs/swagger';
 export class CreateAuthDto extends LoginAuthDto {
@@ -35,7 +35,7 @@ export class CreateAuthDto extends LoginAuthDto {
   birthday: Date;
 
   @ApiProperty()
-  @IsEnum(Roles)
+  @IsEnum(ROLES)
   @IsNotEmpty()
-  role: Roles;
+  role: ROLES;
 }

@@ -6,12 +6,11 @@ import {
   ForeignKey,
   Table,
   BelongsTo,
-  Scopes,
   Model,
 } from 'sequelize-typescript';
-import { Rating } from 'src/common/types/Rating.types';
-import { Ticket } from 'src/modules/ticket/entities/ticket.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { RATING } from 'src/common/types/Rating.types';
+import { Ticket } from 'src/modules/ticket/models/ticket.model';
+import { User } from 'src/modules/user/models/user.model';
 @Table({
   tableName: 'feedbacks',
 })
@@ -40,7 +39,7 @@ export class Feedback extends Model {
     type: DataType.INTEGER,
     allowNull: false,
     validate: {
-      isIn: [Object.values(Rating)],
+      isIn: [Object.values(RATING)],
     },
   })
   rating: number;

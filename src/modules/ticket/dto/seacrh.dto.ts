@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsDate, IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { Status } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/status.types';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SearchTicketDto {
@@ -10,9 +10,9 @@ export class SearchTicketDto {
   username: string;
 
   @ApiProperty()
-  @IsEnum(Status)
+  @IsEnum(STATUS)
   @IsNotEmpty()
-  status: Status;
+  status: STATUS;
 
   @ApiProperty()
   @Transform((value) => new Date(value.value))

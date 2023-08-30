@@ -9,10 +9,9 @@ import {
   Scopes,
   Model,
 } from 'sequelize-typescript';
-import { Prioritize } from 'src/common/types/Prioritizae.types';
-import { Category } from 'src/common/types/category.types';
-import { TicketStatus } from 'src/modules/ticket-status/entities/ticket-status.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { PRIORITIZE } from 'src/common/types/Prioritize.types';
+import { TicketStatus } from 'src/modules/ticket-status/models/ticket-status.model';
+import { User } from 'src/modules/user/models/user.model';
 
 @Scopes(() => ({
   times: {
@@ -65,16 +64,16 @@ export class Ticket extends Model {
   statusId: number;
 
   @Column({
-    type: DataType.ENUM(...Object.keys(Prioritize)),
-    defaultValue: Prioritize.Low,
+    type: DataType.ENUM(...Object.keys(PRIORITIZE)),
+    defaultValue: PRIORITIZE.LOW,
   })
-  prioritize: Prioritize;
+  prioritize: PRIORITIZE;
 
   @Column({
-    type: DataType.ENUM(...Object.keys(Category)),
+    type: DataType.INTEGER,
     allowNull: false,
   })
-  category: Category;
+  categoryId: number;
 
   @Column({
     type: DataType.BOOLEAN,
@@ -122,6 +121,9 @@ export class Ticket extends Model {
 
   @BelongsTo(() => User, 'staffId')
   staff: User;
+
+  // @BelongsTo(() => Category, 'categoryId')
+  // category: Category;
 
   @BelongsTo(() => TicketStatus)
   ticketStatus: TicketStatus;

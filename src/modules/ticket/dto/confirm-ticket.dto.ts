@@ -1,16 +1,13 @@
 import { Transform } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 
-enum AcceptConfirm {
-  Accept = 'accept',
-  Decline = 'decline',
-}
 import { ApiProperty } from '@nestjs/swagger';
+import { CONFIRMATION } from 'src/common/types/Active.types';
 export class ConfirmTicket {
   @ApiProperty()
-  @IsEnum(AcceptConfirm)
+  @IsEnum(CONFIRMATION)
   @IsNotEmpty()
-  isConfirm: AcceptConfirm;
+  isConfirm: CONFIRMATION;
 
   @ApiProperty()
   @Transform((value) => {

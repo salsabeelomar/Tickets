@@ -5,7 +5,7 @@ import { TicketStatusProvider } from './ticket-status.providers';
 
 @Module({
   controllers: [TicketStatusController],
-  providers: [TicketStatusService, TicketStatusProvider],
-  exports: [TicketStatusService, TicketStatusProvider],
+  providers: [TicketStatusService, ...TicketStatusProvider],
+  exports: [TicketStatusService, ...TicketStatusProvider],
 })
 export class TicketStatusModule {}

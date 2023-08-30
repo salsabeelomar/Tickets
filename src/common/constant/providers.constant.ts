@@ -1,4 +1,4 @@
-export const Providers = {
+export const PROVIDER = {
   USER: 'USER_PROVIDER',
   TICKET: 'TICKET_PROVIDER',
   STATUS: 'STATUS_PROVIDER',

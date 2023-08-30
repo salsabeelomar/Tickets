@@ -1,7 +1,9 @@
-import { Providers } from 'src/common/constant/providers.constant';
-import { Ticket } from './entities/ticket.entity';
+import { PROVIDER } from 'src/common/constant/providers.constant';
+import { Ticket } from './models/ticket.model';
 
-export const TicketProvider = {
-  provide: Providers.TICKET,
-  useValue: Ticket,
-};
+export const TicketProvider = [
+  {
+    provide: PROVIDER.TICKET,
+    useValue: Ticket,
+  },
+];

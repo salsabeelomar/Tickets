@@ -10,8 +10,8 @@ import {
   Scopes,
   HasMany,
 } from 'sequelize-typescript';
-import { Roles } from 'src/common/types/Roles.types';
-import { Ticket } from 'src/modules/ticket/entities/ticket.entity';
+import { ROLES } from 'src/common/types/Roles.types';
+import { Ticket } from 'src/modules/ticket/models/ticket.model';
 
 @Scopes(() => ({
   times: {
@@ -81,9 +81,9 @@ export class User extends Model {
   birthday: Date;
 
   @Column({
-    type: DataType.ENUM(...Object.values(Roles)),
+    type: DataType.ENUM(...Object.values(ROLES)),
   })
-  role: Roles;
+  role: ROLES;
 
   @ForeignKey(() => User)
   @Column({
@@ -105,7 +105,7 @@ export class User extends Model {
 
   @BelongsTo(() => User)
   users: User;
-  
+
   @HasMany(() => Ticket, 'user_id')
   tickets: Ticket[];
 }

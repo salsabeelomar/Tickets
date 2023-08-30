@@ -1,7 +1,9 @@
-import { Providers } from 'src/common/constant/providers.constant';
-import { User } from './entities/user.entity';
+import { PROVIDER } from 'src/common/constant/providers.constant';
+import { User } from './models/user.model';
 
-export const UserProvider = {
-  provide: Providers.USER,
-  useValue: User,
-};
+export const UserProvider = [
+  {
+    provide: PROVIDER.USER,
+    useValue: User,
+  },
+];

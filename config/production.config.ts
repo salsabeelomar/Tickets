@@ -11,4 +11,5 @@ export const config = () => ({
     host: process.env.DB_HOST,
   },
   JwtSecret: process.env.JWT_SECRET,
+  Port: process.env.PORT,
 });

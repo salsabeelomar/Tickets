@@ -1,7 +1,9 @@
-import { Providers } from 'src/common/constant/providers.constant';
-import { Feedback } from './entities/feedback.entity';
+import { PROVIDER } from 'src/common/constant/providers.constant';
+import { Feedback } from './models/feedback.model';
 
-export const FeedbackProvider = {
-  provide: Providers.FEEDBACK,
-  useValue: Feedback,
-};
+export const FeedbackProvider = [
+  {
+    provide: PROVIDER.FEEDBACK,
+    useValue: Feedback,
+  },
+];

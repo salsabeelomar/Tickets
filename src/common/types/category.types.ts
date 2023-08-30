@@ -1,5 +1,5 @@
-export enum Category {
-  Billing = 'Billing',
-  Technical = 'Technical',
-  General_Inquiry = 'General_Inquiry',
+export enum CATEGORY {
+  BILLING = 'Billing',
+  TECHNICAL = 'Technical',
+  GENERAL_INQUIRY = 'General_Inquiry',
 }
