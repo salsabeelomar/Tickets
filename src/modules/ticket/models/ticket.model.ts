@@ -10,6 +10,8 @@ import {
   Model,
 } from 'sequelize-typescript';
 import { PRIORITIZE } from 'src/common/types/Prioritize.types';
+import { Category } from 'src/modules/category/models/category.model';
+import { Tags } from 'src/modules/tags/models/tag.model';
 import { TicketStatus } from 'src/modules/ticket-status/models/ticket-status.model';
 import { User } from 'src/modules/user/models/user.model';
 
@@ -64,11 +66,12 @@ export class Ticket extends Model {
   statusId: number;
 
   @Column({
-    type: DataType.ENUM(...Object.keys(PRIORITIZE)),
+    type: DataType.ENUM(...Object.values(PRIORITIZE)),
     defaultValue: PRIORITIZE.LOW,
   })
   prioritize: PRIORITIZE;
 
+  @ForeignKey(() => Category)
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
@@ -81,10 +84,11 @@ export class Ticket extends Model {
   })
   isConfirm: boolean;
 
+  @ForeignKey(() => Tags)
   @Column({
-    type: DataType.STRING,
+    type: DataType.INTEGER,
   })
-  tag: string;
+  tagId: string;
 
   @Column({
     type: DataType.STRING(50),
@@ -119,11 +123,14 @@ export class Ticket extends Model {
   @BelongsTo(() => User, 'adminId')
   admin: User;
 
+  @BelongsTo(() => Tags)
+  tag: Tags;
+
   @BelongsTo(() => User, 'staffId')
   staff: User;
 
-  // @BelongsTo(() => Category, 'categoryId')
-  // category: Category;
+  @BelongsTo(() => Category, 'categoryId')
+  category: Category;
 
   @BelongsTo(() => TicketStatus)
   ticketStatus: TicketStatus;

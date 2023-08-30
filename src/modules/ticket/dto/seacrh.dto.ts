@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsDate, IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { STATUS } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/Status.types';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SearchTicketDto {

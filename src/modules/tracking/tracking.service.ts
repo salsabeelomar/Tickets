@@ -6,7 +6,7 @@ import { Tracking } from './models/tracking.model';
 import { TicketStatusService } from '../ticket-status/ticket-status.service';
 import { Op, Transaction } from 'sequelize';
 import { CheckExisting } from 'src/common/utils/checkExisting';
-import { STATUS } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/Status.types';
 import { TicketService } from '../ticket/ticket.service';
 import { VerifyEmailService } from '../verify-email/verify-email.service';
 import { ConfirmTicket } from '../ticket/dto/confirm-ticket.dto';

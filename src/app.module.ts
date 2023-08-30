@@ -18,6 +18,10 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import { TicketEmitterModule } from './modules/ticket-emitter/ticket-emitter.module';
+import { CategoryModule } from './modules/category/category.module';
+import { TagsModule } from './modules/tags/tags.module';
+import { SupportStaffModule } from './modules/support-staff/support-staff.module';
+import { AssignmentTicketModule } from './modules/assignment-ticket/assignment-ticket.module';
 
 @Module({
   imports: [
@@ -33,6 +37,7 @@ import { TicketEmitterModule } from './modules/ticket-emitter/ticket-emitter.mod
       ttl: 1000,
       isGlobal: true,
     }),
+    CategoryModule,
     TicketEmitterModule,
     AuthModule,
     UserModule,
@@ -42,6 +47,10 @@ import { TicketEmitterModule } from './modules/ticket-emitter/ticket-emitter.mod
     DashboardModule,
     NotificationModule,
     FeedbacksModule,
+    SupportStaffModule,
+    TagsModule,
+    CategoryModule,
+    AssignmentTicketModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],

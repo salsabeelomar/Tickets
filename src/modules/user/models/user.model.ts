@@ -14,7 +14,7 @@ import { ROLES } from 'src/common/types/Roles.types';
 import { Ticket } from 'src/modules/ticket/models/ticket.model';
 
 @Scopes(() => ({
-  times: {
+  basic: {
     attributes: {
       exclude: [
         'createdAt',

@@ -3,7 +3,7 @@ import { GatewayTimeoutException, Injectable } from '@nestjs/common';
 import { EmailDto } from './dto/email.dto';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { activeStaff } from './dto/confirm-staff.dto';
-import { STATUS } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/Status.types';
 import { ConfirmTic } from './dto/confirm-ticket.dto';
 import { ResponseTick } from './dto/receive-response.dto';
 import { ConfigService } from '@nestjs/config';

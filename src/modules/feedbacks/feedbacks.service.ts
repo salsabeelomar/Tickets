@@ -7,7 +7,7 @@ import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { Transaction } from 'sequelize';
 import { TicketService } from '../ticket/ticket.service';
 import { CheckExisting } from 'src/common/utils/checkExisting';
-import { STATUS } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/Status.types';
 
 @Injectable()
 export class FeedbacksService {

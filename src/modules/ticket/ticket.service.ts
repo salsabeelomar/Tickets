@@ -5,7 +5,7 @@ import { Transaction, Op } from 'sequelize';
 import { PROVIDER } from 'src/common/constant/providers.constant';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { TICKET_EVENTS } from 'src/common/events/ticket.events';
-import { STATUS } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/Status.types';
 
 import { User } from '../user/models/user.model';
 import { TicketStatus } from '../ticket-status/models/ticket-status.model';

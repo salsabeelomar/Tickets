@@ -3,7 +3,7 @@ import { CreateTicketStatusDto } from './dto/create-ticket-status.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { PROVIDER } from 'src/common/constant/providers.constant';
 import { TicketStatus } from './models/ticket-status.model';
-import { STATUS } from 'src/common/types/status.types';
+import { STATUS } from 'src/common/types/Status.types';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { Transaction } from 'sequelize';
 import { CheckExisting } from 'src/common/utils/checkExisting';
