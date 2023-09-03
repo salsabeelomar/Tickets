@@ -10,7 +10,7 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { User } from 'src/common/decorator/user.decorator';
-import { GenerateToken } from '../auth/dto/generate-Token.dto';
+import { UserToken } from '../auth/dto/generate-Token.dto';
 import { TransactionDeco } from 'src/common/decorator/transaction.decorator';
 import { Transaction } from 'sequelize';
 import { TransactionInter } from 'src/common/interceptor/Transaction.interceptor';
@@ -26,7 +26,7 @@ export class CategoryController {
   @Post()
   create(
     @Body() createCategoryDto: CreateCategoryDto,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.categoryService.create(createCategoryDto, user.id, trans);
@@ -35,7 +35,7 @@ export class CategoryController {
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.categoryService.findById(id, trans);

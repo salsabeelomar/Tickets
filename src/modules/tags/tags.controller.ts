@@ -13,7 +13,7 @@ import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { Transaction } from 'sequelize';
 import { TransactionInter } from 'src/common/interceptor/Transaction.interceptor';
-import { GenerateToken } from '../auth/dto/generate-Token.dto';
+import { UserToken } from '../auth/dto/generate-Token.dto';
 import { TransactionDeco } from 'src/common/decorator/transaction.decorator';
 import { User } from 'src/common/decorator/user.decorator';
 import { Role } from 'src/common/decorator/role.decorator';
@@ -28,7 +28,7 @@ export class TagsController {
   @Post()
   create(
     @Body() createTagDto: CreateTagDto,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.tagsService.create(createTagDto, user.id, trans);

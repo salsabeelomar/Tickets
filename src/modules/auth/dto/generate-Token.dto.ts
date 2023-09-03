@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { ROLES } from 'src/common/types/Roles.types';
 
-export class GenerateToken {
+export class UserToken {
   @IsInt()
   @IsNotEmpty()
   id: number;

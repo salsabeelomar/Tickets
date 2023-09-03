@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { User } from '../user/models/user.model';
 import { PROVIDER } from 'src/common/constant/providers.constant';
 import { UserService } from '../user/user.service';
@@ -12,11 +6,12 @@ import { CheckExisting } from 'src/common/utils/checkExisting';
 import * as bcrypt from 'bcrypt';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { JwtService } from '@nestjs/jwt';
-import { GenerateToken } from './dto/generate-Token.dto';
+import { UserToken } from './dto/generate-Token.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { VerifyEmailService } from 'src/modules/verify-email/verify-email.service';
 import { Transaction } from 'sequelize';
 import { ROLES } from 'src/common/types/Roles.types';
+import { CreateAuthDto } from './dto/create-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +23,26 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly verifyEmail: VerifyEmailService,
   ) {}
+  async addUser(user: CreateAuthDto, transaction: Transaction) {
+    const addUser = await this.userService.addUser(user, transaction);
+
+    await this.verifyEmail.sendConfirmUser({
+      lname: user.lname,
+      fname: user.fname,
+      email: user.email,
+      token: this.userService.generateToken({
+        ...addUser.user,
+        isActive: true,
+      }),
+    });
+    return {
+      ...addUser,
+      token: this.userService.generateToken({
+        ...addUser.user,
+        isActive: false,
+      }),
+    };
+  }
 
   async signIn(user: LoginAuthDto, transaction: Transaction) {
     const getUser = await this.userService.getUserByEmail(user.email);
@@ -43,7 +58,7 @@ export class AuthService {
       msg: 'Email or Password not Correct',
       trace: 'AuthService.signIn',
     });
-    const userData: GenerateToken = {
+    const userData: UserToken = {
       id: getUser.id,
       username: getUser.username,
       email: getUser.email,
@@ -58,88 +73,21 @@ export class AuthService {
     };
   }
 
-  async signUp(user: CreateAuthDto, transaction: Transaction) {
-    const getUser = await this.userService.getUserByEmail(user.email);
-
-    CheckExisting(!getUser, {
-      msg: 'Email is Existing',
-      trace: 'AuthService.signUp',
-    });
-
-    const hashPass = bcrypt.hashSync(user.password, 10);
-
-    const newUser = await this.userRepo.create(
-      {
-        ...user,
-        password: hashPass,
-      },
-      {
-        transaction,
-      },
-    );
-
-    const userData = {
-      id: newUser.id,
-      username: newUser.username,
-      email: newUser.email,
-      role: newUser.role,
-    };
-
-    await this.verifyEmail.sendConfirmUser({
-      lname: user.lname,
-      fname: user.fname,
-      email: user.email,
-      token: this.userService.generateToken({ ...userData, isActive: true }),
-    });
-
-    this.winstonLogger.log(`Create New User with ID=${newUser.id}`);
-
-    return {
-      ...userData,
-      token: this.userService.generateToken({ ...userData, isActive: false }),
-    };
-  }
-
-  async verifyUser(
-    token: string,
-    transaction: Transaction,
-    toActivate?: boolean,
-  ) {
+  async verifyUser(token: string, transaction: Transaction) {
     const decoded = this.verifyToken(token);
     const getUser = await this.userService.getUserById(decoded.sub);
+    CheckExisting(getUser, {
+      msg: 'User not Found ',
+      trace: 'AuthService.verifyUser',
+    });
 
-    if (getUser?.email && toActivate && decoded.user.isActive) {
-      const updateUser = await this.userRepo.update(
-        {
-          isActive: true,
-          updatedBy: decoded.sub,
-        },
-        {
-          where: { id: decoded.sub },
-          transaction,
-        },
-      );
-      CheckExisting(updateUser[0], {
-        msg: 'Failed To Activate the Account',
-        trace: 'AuthService.verifyUser',
-      });
-      return 'Email Verify Successfully ';
-    } else if (
-      decoded.user.isActive === false &&
-      decoded.user.role === ROLES.SUPPORT_STAFF
-    ) {
-      const deleteStaff = await this.userService.removeUser(
-        decoded.sub,
-        decoded.sub,
-        transaction,
-      );
-      CheckExisting(deleteStaff[0], {
-        msg: 'Failed To Delete Staff',
-        trace: 'AuthService.verifyUser',
-      });
+    await this.userService.updateStatus(
+      getUser.id,
+      decoded.user.isActive,
+      transaction,
+    );
 
-      return 'Staff Deleted Successfully ';
-    }
+    return { msg: 'Email Verify Successfully ' };
   }
 
   verifyToken(token: string) {

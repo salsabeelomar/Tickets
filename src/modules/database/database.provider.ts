@@ -19,7 +19,6 @@ export const databaseProvider = [
       const sequelize = new Sequelize({
         ...configService.get('database'),
         define: {
-          deletedAt: true,
           underscored: true,
         },
       });

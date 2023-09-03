@@ -12,8 +12,23 @@ import {
 import { STAFF_STATUS } from 'src/common/types/staff-status.types';
 import { User } from 'src/modules/user/models/user.model';
 
+@Scopes(() => ({
+  basic: {
+    attributes: {
+      exclude: [
+        'createdAt',
+        'updatedAt',
+        'updatedBy',
+        'deletedAt',
+        'deletedBy',
+      ],
+    },
+  },
+}))
 @Table({
   tableName: 'support_staffs',
+  paranoid: true,
+  deletedAt: true,
 })
 export class SupportStaff extends Model {
   @PrimaryKey
@@ -34,6 +49,7 @@ export class SupportStaff extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    unique: true,
   })
   userId: number;
 

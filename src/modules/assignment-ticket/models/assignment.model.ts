@@ -15,6 +15,8 @@ import { User } from 'src/modules/user/models/user.model';
 
 @Table({
   tableName: 'assignment_tickets',
+  paranoid: true,
+  deletedAt: true,
 })
 export class AssignmentTickets extends Model {
   @PrimaryKey

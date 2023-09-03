@@ -17,25 +17,28 @@ export class VerifyEmailService {
   ) {}
 
   async sendConfirmUser(user: EmailDto) {
-    try {
-      await this.mailerService.sendMail({
-        to: user.email,
-        from: 'noreply@nestjs.com',
-        subject: 'Verify Email from Tickets',
-        text: `Hello ${user.lname} ${user.fname}`,
-        html: `<b>welcome ${user.lname} ${
-          user.fname
-        } <a href=${this.configService.get('confirmUser')}?token=${
-          user.token
-        }> Confirmation  Link </a> </b>`,
-      });
-      this.logger.log(`Send Email for user ${user.lname} ${user.fname} `);
-    } catch (error) {
-      throw new GatewayTimeoutException(error);
-    }
+    await this.mailerService.sendMail({
+      to: user.email,
+      from: 'noreply@nestjs.com',
+      subject: 'Verify Email from Tickets',
+      text: `Hello ${user.lname} ${user.fname}`,
+      html: `<b>welcome ${user.lname} ${
+        user.fname
+      } <a href=${this.configService.get('confirmUser')}?token=${
+        user.token
+      }> Confirmation  Link </a> </b>`,
+    });
+    this.logger.log(`Send Email for user ${user.lname} ${user.fname} `);
   }
 
-  async sendConfirmStaff(confirmStaff: activeStaff) {
+  async invitationStaff(confirmStaff: activeStaff) {
+    const activeToken = `${this.configService.get('confirmStaff')}?token=${
+      confirmStaff.activeToken
+    }`;
+    const declineToken = `${this.configService.get('confirmStaff')}?token=${
+      confirmStaff.declineToken
+    }`;
+
     await this.mailerService.sendMail({
       to: confirmStaff.email,
       from: 'noreply@nestjs.com',
@@ -44,12 +47,8 @@ export class VerifyEmailService {
       html: `
        <h3> Confirm Your Tickets</h3>
        <div>
-       <button> <a href=${this.configService.get('confirmTicket')}?token=${
-        confirmStaff.activeToken
-      }> Confirm </a> </button>
-       <button> <a href=${this.configService.get('confirmTicket')}?token=${
-        confirmStaff.declineToken
-      }> Decline </a> </button>
+       <button> <a href=${activeToken}}> Accept </a> </button>
+       <button> <a href=${declineToken}> Decline </a> </button>
        </div>`,
     });
 

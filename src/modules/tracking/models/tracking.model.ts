@@ -14,6 +14,8 @@ import { User } from 'src/modules/user/models/user.model';
 
 @Table({
   tableName: 'tracking',
+  paranoid: true,
+  deletedAt: true,
 })
 export class Tracking extends Model {
   @PrimaryKey

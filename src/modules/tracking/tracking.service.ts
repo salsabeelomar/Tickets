@@ -14,7 +14,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TICKET_EVENTS } from 'src/common/events/ticket.events';
 import { TicketStatus } from '../ticket-status/models/ticket-status.model';
 import { User } from '../user/models/user.model';
-import { GenerateToken } from '../auth/dto/generate-Token.dto';
+import { UserToken } from '../auth/dto/generate-Token.dto';
 
 @Injectable()
 export class TrackingService {
@@ -29,7 +29,7 @@ export class TrackingService {
 
   async matchStatus(
     addStatus: CreateTracking,
-    user: GenerateToken,
+    user: UserToken,
     transaction: Transaction,
   ) {
     const checkConfirm = await this.ticketService.CheckConfirm(
@@ -110,7 +110,7 @@ export class TrackingService {
 
   async assignOrUnAssign(
     addStatus: CreateTracking,
-    user: GenerateToken,
+    user: UserToken,
     transaction: Transaction,
   ) {
     const action = await this.create(

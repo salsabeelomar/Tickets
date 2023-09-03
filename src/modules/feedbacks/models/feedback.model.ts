@@ -13,6 +13,8 @@ import { Ticket } from 'src/modules/ticket/models/ticket.model';
 import { User } from 'src/modules/user/models/user.model';
 @Table({
   tableName: 'feedbacks',
+  paranoid: true,
+  deletedAt: true,
 })
 export class Feedback extends Model {
   @PrimaryKey

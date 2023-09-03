@@ -14,7 +14,6 @@ import { VerifyEmailModule } from './modules/verify-email/verify-email.module';
 import { TicketModule } from './modules/ticket/ticket.module';
 import config from 'config/index.config';
 import { TrackingModule } from './modules/tracking/tracking.module';
-import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import { TicketEmitterModule } from './modules/ticket-emitter/ticket-emitter.module';
@@ -43,15 +42,14 @@ import { AssignmentTicketModule } from './modules/assignment-ticket/assignment-t
     UserModule,
     VerifyEmailModule,
     TicketModule,
-    TrackingModule,
-    DashboardModule,
-    NotificationModule,
-    FeedbacksModule,
+    // TrackingModule,
+    // NotificationModule,
+    // FeedbacksModule,
     SupportStaffModule,
     TagsModule,
-    CategoryModule,
+    // CategoryModule,
     AssignmentTicketModule,
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],

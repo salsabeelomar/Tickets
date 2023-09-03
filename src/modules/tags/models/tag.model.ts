@@ -27,6 +27,8 @@ import { User } from 'src/modules/user/models/user.model';
 }))
 @Table({
   tableName: 'tags',
+  paranoid: true,
+  deletedAt: true,
 })
 export class Tags extends Model {
   @PrimaryKey

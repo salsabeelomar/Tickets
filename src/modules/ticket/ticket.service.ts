@@ -15,6 +15,7 @@ import { VerifyEmailService } from '../verify-email/verify-email.service';
 import { SearchTicketDto } from './dto/seacrh.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { UserToken } from '../auth/dto/generate-Token.dto';
 
 @Injectable()
 export class TicketService {
@@ -24,7 +25,11 @@ export class TicketService {
     private readonly verifyEmailService: VerifyEmailService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
-  async create(ticket: CreateTicketDto, user, transaction: Transaction) {
+  async create(
+    ticket: CreateTicketDto,
+    user: UserToken,
+    transaction: Transaction,
+  ) {
     const newTicket = await this.ticketRepo.create(
       {
         ...ticket,
@@ -42,26 +47,11 @@ export class TicketService {
       username: user.username,
       ticketId: newTicket.id,
     });
-    return {
-      id: newTicket.id,
-      title: newTicket.title,
-      description: newTicket.description,
-      category: newTicket.categoryId,
-      tag: newTicket.tag,
-    };
+    return newTicket;
   }
 
   async findAll() {
-    const getAllTicket = await this.ticketRepo.findAll({
-      attributes: [
-        'id',
-        'title',
-        'description',
-        'category',
-        'tag',
-        'prioritize',
-        'createdAt',
-      ],
+    const getAllTicket = await this.ticketRepo.scope('basic').findAll({
       include: [
         {
           model: User,
@@ -73,7 +63,6 @@ export class TicketService {
           as: 'staff',
           attributes: ['id', 'username'],
         },
-
         {
           model: TicketStatus,
           attributes: ['id', 'status'],
@@ -89,15 +78,7 @@ export class TicketService {
     };
   }
   async getUserTicket(userId: number) {
-    const getAllTicket = await this.ticketRepo.findAll({
-      attributes: [
-        'id',
-        'title',
-        'description',
-        'isConfirm',
-        'createdAt',
-        'updatedAt',
-      ],
+    const getAllTicket = await this.ticketRepo.scope('basic').findAll({
       include: [
         {
           model: TicketStatus,
@@ -150,8 +131,7 @@ export class TicketService {
   }
 
   async getTicById(id: number, transaction?: Transaction) {
-    const getTic = await this.ticketRepo.findByPk(id, {
-      attributes: ['title', 'description', 'userId', 'isConfirm', 'createdAt'],
+    const getTic = await this.ticketRepo.scope('basic').findByPk(id, {
       include: [
         {
           model: User,
@@ -174,8 +154,7 @@ export class TicketService {
     return getTic;
   }
   async search(querySearch: SearchTicketDto, transaction: Transaction) {
-    const searched = await this.ticketRepo.scope('times').findAll({
-      attributes: ['title', 'description', 'tag', 'category', 'prioritize'],
+    const searched = await this.ticketRepo.scope('basic').findAll({
       include: [
         {
           model: User,
@@ -207,15 +186,7 @@ export class TicketService {
     return searched;
   }
   async getOpenTic(transaction: Transaction) {
-    const searched = await this.ticketRepo.scope('times').findAll({
-      attributes: [
-        'title',
-        'description',
-        'tag',
-        'category',
-        'prioritize',
-        'createdAt',
-      ],
+    const searched = await this.ticketRepo.scope('scope').findAll({
       include: [
         {
           model: User,

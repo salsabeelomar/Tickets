@@ -10,26 +10,24 @@ import {
   Model,
 } from 'sequelize-typescript';
 import { PRIORITIZE } from 'src/common/types/Prioritize.types';
+import { AssignmentTickets } from 'src/modules/assignment-ticket/models/assignment.model';
 import { Category } from 'src/modules/category/models/category.model';
 import { Tags } from 'src/modules/tags/models/tag.model';
 import { TicketStatus } from 'src/modules/ticket-status/models/ticket-status.model';
 import { User } from 'src/modules/user/models/user.model';
 
 @Scopes(() => ({
-  times: {
+  full: {},
+  basic: {
     attributes: {
-      exclude: [
-        'createdAt',
-        'updatedAt',
-        'updatedBy',
-        'deletedAt',
-        'deletedBy',
-      ],
+      exclude: ['updatedAt', 'updatedBy', 'deletedAt', 'deletedBy'],
     },
   },
 }))
 @Table({
   tableName: 'tickets',
+  paranoid: true,
+  deletedAt: true,
 })
 export class Ticket extends Model {
   @PrimaryKey
@@ -52,11 +50,11 @@ export class Ticket extends Model {
   })
   adminId: number;
 
-  @ForeignKey(() => User)
+  @ForeignKey(() => AssignmentTickets)
   @Column({
     type: DataType.INTEGER,
   })
-  staffId: number;
+  assignmentId: number;
 
   @ForeignKey(() => TicketStatus)
   @Column({

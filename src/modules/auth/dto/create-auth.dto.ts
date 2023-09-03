@@ -5,6 +5,8 @@ import {
   IsDate,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
+  IsNumber,
 } from 'class-validator';
 import { ROLES } from 'src/common/types/Roles.types';
 import { LoginAuthDto } from './login-auth.dto';
@@ -38,4 +40,9 @@ export class CreateAuthDto extends LoginAuthDto {
   @IsEnum(ROLES)
   @IsNotEmpty()
   role: ROLES;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  createdBy?: number;
 }

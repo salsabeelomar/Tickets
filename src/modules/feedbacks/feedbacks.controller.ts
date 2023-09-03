@@ -10,7 +10,7 @@ import {
 import { FeedbacksService } from './feedbacks.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
-import { GenerateToken } from '../auth/dto/generate-Token.dto';
+import { UserToken } from '../auth/dto/generate-Token.dto';
 import { TransactionDeco } from 'src/common/decorator/transaction.decorator';
 import { User } from 'src/common/decorator/user.decorator';
 import { Transaction } from 'sequelize';
@@ -25,7 +25,7 @@ export class FeedbacksController {
   @Post()
   create(
     @Body() createFeedbackDto: CreateFeedbackDto,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.feedbacksService.create(createFeedbackDto, user.id, trans);

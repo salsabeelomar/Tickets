@@ -19,6 +19,8 @@ import { User } from 'src/modules/user/models/user.model';
 }))
 @Table({
   tableName: 'categories',
+  paranoid: true,
+  deletedAt: true,
 })
 export class Category extends Model {
   @PrimaryKey

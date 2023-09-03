@@ -15,7 +15,7 @@ import { ROLES } from 'src/common/types/Roles.types';
 import { User } from 'src/common/decorator/user.decorator';
 import { TransactionInter } from 'src/common/interceptor/Transaction.interceptor';
 import { ConfirmTicket } from '../ticket/dto/confirm-ticket.dto';
-import { GenerateToken } from '../auth/dto/generate-Token.dto';
+import { UserToken } from '../auth/dto/generate-Token.dto';
 
 @UseInterceptors(TransactionInter)
 @Controller('tracking')
@@ -26,7 +26,7 @@ export class TrackingController {
   @Post()
   create(
     @Body() ticketActions: CreateTracking,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.trackingService.matchStatus(ticketActions, user, trans);
@@ -35,7 +35,7 @@ export class TrackingController {
   @Get('confirm')
   confirm(
     @Query() confirm: ConfirmTicket,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.trackingService.confirmTicket(confirm, user.id, trans);

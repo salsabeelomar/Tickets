@@ -22,7 +22,7 @@ import { ROLES } from 'src/common/types/Roles.types';
 import { SearchTicketDto } from './dto/seacrh.dto';
 import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { GenerateToken } from '../auth/dto/generate-Token.dto';
+import { UserToken } from '../auth/dto/generate-Token.dto';
 
 @UseInterceptors(TransactionInter)
 @Controller('ticket')
@@ -36,7 +36,7 @@ export class TicketController {
   @Post()
   create(
     @Body() createTicketDto: CreateTicketDto,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.ticketService.create(createTicketDto, user, trans);
@@ -66,7 +66,7 @@ export class TicketController {
   @Get('search')
   search(
     @Query() query: SearchTicketDto,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.ticketService.search(query, trans);
@@ -78,7 +78,7 @@ export class TicketController {
     @Param('id', ParseIntPipe) id: number,
     @Body()
     updateTicketDto: UpdateTicketDto,
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.ticketService.updatedOne(
@@ -90,7 +90,7 @@ export class TicketController {
 
   @Get('resolved-issues')
   getResolved(
-    @User() user: GenerateToken,
+    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.ticketService.getClosedTic(trans);

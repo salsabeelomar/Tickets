@@ -16,6 +16,8 @@ import { TransactionDeco } from 'src/common/decorator/transaction.decorator';
 import { TransactionInter } from 'src/common/interceptor/Transaction.interceptor';
 
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Role } from 'src/common/decorator/role.decorator';
+import { ROLES } from 'src/common/types/Roles.types';
 @ApiTags('Auth')
 @UseInterceptors(TransactionInter)
 @Controller('auth')
@@ -31,7 +33,7 @@ export class AuthController {
     @Body() createAuthDto: CreateAuthDto,
     @TransactionDeco() trans: Transaction,
   ) {
-    return this.authService.signUp(createAuthDto, trans);
+    return this.authService.addUser(createAuthDto, trans);
   }
 
   @NotActive()
@@ -48,23 +50,11 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Sign In User' })
   @NotActive()
   @Public()
-  @Get('confirm')
+  @Get('activate')
   async confirmEmail(
     @Query('token') token: string,
     @TransactionDeco() trans: Transaction,
   ) {
-    return await this.authService.verifyUser(token, trans, true);
-  }
-
-  @ApiOperation({ summary: 'Verify User Email' })
-  @ApiResponse({ status: 200, description: 'Verify User Email' })
-  @NotActive()
-  @Public()
-  @Get('add-staff')
-  async confirmStaff(
-    @Query('token') token: string,
-    @TransactionDeco() trans: Transaction,
-  ) {
-    return await this.authService.verifyUser(token, trans, true);
+    return await this.authService.verifyUser(token, trans);
   }
 }
