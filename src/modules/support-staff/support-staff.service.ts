@@ -5,7 +5,6 @@ import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { UserService } from '../user/user.service';
 import { VerifyEmailService } from '../verify-email/verify-email.service';
 import { Transaction } from 'sequelize';
-import { AuthService } from '../auth/auth.service';
 import { SupportStaff } from './models/support-staff.model';
 import { STAFF_STATUS } from 'src/common/types/staff-status.types';
 import { CreateAuthDto } from '../auth/dto/create-auth.dto';
@@ -17,7 +16,6 @@ export class StaffService {
   private readonly logger = new WinstonLogger();
   constructor(
     @Inject(PROVIDER.STAFF) private readonly supportRepo: typeof SupportStaff,
-    private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly verifyEmail: VerifyEmailService,
   ) {}
@@ -27,7 +25,7 @@ export class StaffService {
         userId: userId,
         adminId: adminId,
         status: STAFF_STATUS.PENDING,
-        createdBy: userId,
+        createdBy: adminId,
       },
       { transaction },
     );
@@ -49,7 +47,6 @@ export class StaffService {
       email: newUser.user.email,
       activeToken: this.userService.generateToken({
         ...newUser.user,
-        id: staff.id,
         isActive: true,
       }),
       declineToken: this.userService.generateToken({
@@ -63,8 +60,7 @@ export class StaffService {
     return { staff, msg: 'Waiting Staff To Accept Invitation' };
   }
   async verifyStaffInvitation(token: string, transaction: Transaction) {
-    const decoded = this.authService.verifyToken(token);
-
+    const decoded = this.userService.verifyToken(token);
     const getAsStaff = await this.findStaffByUserId(decoded.sub, transaction);
     if (decoded.user.isActive) {
       return this.acceptStaff(getAsStaff.id, decoded.sub, transaction);
@@ -79,20 +75,18 @@ export class StaffService {
 
     CheckExisting(getStaff, {
       msg: 'Staff with this Id not Found',
-      trace: 'StaffService.findStaffById',
+      trace: 'StaffService.findStaffByUserId',
     });
     return getStaff;
   }
-  async findStaffById(id: number, transaction: Transaction) {
-    const getStaff = await this.supportRepo
-      .scope('basic')
-      .findByPk(id, { transaction });
+  async findStaffById(id: number) {
+    const getStaff = await this.supportRepo.scope('basic').findByPk(id);
 
     CheckExisting(getStaff, {
       msg: 'Staff with this Id not Found',
       trace: 'StaffService.findStaffById',
     });
-    
+
     return getStaff;
   }
 
@@ -124,8 +118,9 @@ export class StaffService {
   async acceptStaff(id: number, userId: number, transaction: Transaction) {
     await this.supportRepo.update(
       { status: STAFF_STATUS.ACCEPT, updatedBy: id, updatedAt: new Date() },
-      { where: { id: id }, transaction, returning: true },
+      { where: { id: id }, transaction },
     );
+
     await this.userService.updateStatus(userId, true, transaction);
     this.logger.log(`Staff with Id ${id} Activated Successfully`);
 

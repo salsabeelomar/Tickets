@@ -2,13 +2,14 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import {
   UnauthorizedException,
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { Socket } from 'socket.io';
+import { Socket, Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { TokenExpiredError } from 'jsonwebtoken';
 import { UserService } from 'src/modules/user/user.service';
@@ -20,6 +21,9 @@ export class NotificationService
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   private readonly logger = new WinstonLogger();
+
+  @WebSocketServer()
+  server: Server;
 
   constructor(private jwt: JwtService, private userService: UserService) {}
 

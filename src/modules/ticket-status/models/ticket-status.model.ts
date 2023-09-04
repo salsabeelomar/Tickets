@@ -7,9 +7,18 @@ import {
   Table,
   BelongsTo,
   Model,
+  Scopes,
 } from 'sequelize-typescript';
 import { User } from 'src/modules/user/models/user.model';
 
+@Scopes(() => ({
+  full: {},
+  basic: {
+    attributes: {
+      exclude: ['updatedAt', 'updatedBy', 'deletedAt', 'deletedBy'],
+    },
+  },
+}))
 @Table({
   tableName: 'ticket_status',
   paranoid: true,
@@ -33,7 +42,7 @@ export class TicketStatus extends Model {
     type: DataType.STRING,
     unique: true,
   })
-  Code: string;
+  code: string;
 
   @ForeignKey(() => User)
   @Column({

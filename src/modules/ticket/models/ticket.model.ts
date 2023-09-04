@@ -12,6 +12,7 @@ import {
 import { PRIORITIZE } from 'src/common/types/Prioritize.types';
 import { AssignmentTickets } from 'src/modules/assignment-ticket/models/assignment.model';
 import { Category } from 'src/modules/category/models/category.model';
+import { SupportStaff } from 'src/modules/support-staff/models/support-staff.model';
 import { Tags } from 'src/modules/tags/models/tag.model';
 import { TicketStatus } from 'src/modules/ticket-status/models/ticket-status.model';
 import { User } from 'src/modules/user/models/user.model';
@@ -50,7 +51,7 @@ export class Ticket extends Model {
   })
   adminId: number;
 
-  @ForeignKey(() => AssignmentTickets)
+  @ForeignKey(() => SupportStaff)
   @Column({
     type: DataType.INTEGER,
   })
@@ -124,8 +125,8 @@ export class Ticket extends Model {
   @BelongsTo(() => Tags)
   tag: Tags;
 
-  @BelongsTo(() => User, 'staffId')
-  staff: User;
+  @BelongsTo(() => SupportStaff)
+  assigned: SupportStaff;
 
   @BelongsTo(() => Category, 'categoryId')
   category: Category;

@@ -47,7 +47,7 @@ export class VerifyEmailService {
       html: `
        <h3> Confirm Your Tickets</h3>
        <div>
-       <button> <a href=${activeToken}}> Accept </a> </button>
+       <button> <a href=${activeToken}> Accept </a> </button>
        <button> <a href=${declineToken}> Decline </a> </button>
        </div>`,
     });
@@ -60,18 +60,15 @@ export class VerifyEmailService {
       to: confirmTic.email,
       from: 'noreply@nestjs.com',
       subject: 'Confirm Your Tickets',
-      text: 'Registration Successful',
       html: `<h1>welcome ${confirmTic.username}</h1>
-       <h3> Confirm Your Tickets</h3>
+       <h3> Confirm Your Tickets </h3>
        <div>
        <button> <a href=${this.configService.get(
-         'confirmStaff',
-       )}?isConfirm=accept&ticketId=${
-        confirmTic.ticketId
-      }> Confirm </a> </button>
+         'confirmTicket',
+       )}?isConfirm=true&ticketId=${confirmTic.ticketId}> Confirm </a> </button>
        <button> <a href=${this.configService.get(
-         'confirmStaff',
-       )}?isConfirm=decline&ticketId=${
+         'confirmTicket',
+       )}?isConfirm=false&ticketId=${
         confirmTic.ticketId
       }> Decline </a> </button>
        </div>`,
@@ -79,7 +76,7 @@ export class VerifyEmailService {
     this.logger.log(` Confirm Your Tickets ${confirmTic.username}`);
   }
 
-  async sendUpdateTicket(status: STATUS, user) {
+  async sendUpdateTicket(status: string, user) {
     await this.mailerService.sendMail({
       to: user.email,
       from: 'noreply@nestjs.com',

@@ -1,4 +1,4 @@
-export enum CONFIRMATION {
-  ACCEPT = 'accept',
-  DECLINE = 'decline',
+export enum CONFIRMATION_TICKET {
+  ACCEPT = 'Accept',
+  DECLINE = 'Decline',
 }

@@ -8,6 +8,7 @@ import {
   BelongsTo,
   Model,
 } from 'sequelize-typescript';
+import { SupportStaff } from 'src/modules/support-staff/models/support-staff.model';
 import { TicketStatus } from 'src/modules/ticket-status/models/ticket-status.model';
 import { Ticket } from 'src/modules/ticket/models/ticket.model';
 import { User } from 'src/modules/user/models/user.model';
@@ -38,7 +39,7 @@ export class Tracking extends Model {
   })
   adminId: number;
 
-  @ForeignKey(() => User)
+  @ForeignKey(() => SupportStaff)
   @Column({
     type: DataType.INTEGER,
   })
@@ -83,8 +84,8 @@ export class Tracking extends Model {
   @BelongsTo(() => User)
   users: User;
 
-  @BelongsTo(() => User, 'staffId')
-  staff: User;
+  @BelongsTo(() => SupportStaff, 'staffId')
+  staff: SupportStaff;
 
   @BelongsTo(() => Ticket)
   ticket: Ticket;

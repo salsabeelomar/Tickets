@@ -27,119 +27,34 @@ export class TrackingService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async matchStatus(
+  async addTracking(
     addStatus: CreateTracking,
     user: UserToken,
     transaction: Transaction,
   ) {
-    const checkConfirm = await this.ticketService.CheckConfirm(
-      addStatus.ticketId,
-    );
-
-    CheckExisting(checkConfirm, {
-      msg: "The Ticket isn't Confirmed or Closed ",
-      trace: 'TrackingService.matchStatus',
-    });
-
-    // CheckExisting(
-    //   !(
-    //     user.role === ROLES.SUPPORT_STAFF &&
-    //     (addStatus.status == STATUS.ASSIGNED ||
-    //       addStatus.status == STATUS.UNASSIGNED)
-    //   ),
-    //   ForbiddenException,
-    //   {
-    //     msg: ' Staff tried to UnAssigned OR Assigned Ticket',
-    //     trace: 'TrackingService.addStatus',
-    //   },
-    // );
-
-    const roleId = `${user.role.toLowerCase()}Id`;
-
-    if (
-      addStatus.status == STATUS.ASSIGNED ||
-      addStatus.status == STATUS.UNASSIGNED
-    ) {
-      return this.assignOrUnAssign(addStatus, user, transaction);
-    }
-    {
-      await this.create(
-        {
-          statusId: addStatus.statusId,
-          comments: JSON.stringify(addStatus?.comments || []),
-          ticketId: addStatus.ticketId,
-          scheduleFor: addStatus.scheduleFor || null,
-          [roleId]: user.id,
-          createdBy: user.id,
-        },
-        transaction,
-      );
-
-      await this.notify(
-        { id: addStatus.ticketId, userId: user.id, status: addStatus.status },
-        addStatus?.comments || [],
-        transaction,
-      );
-    }
-    console.log({
-      staffId: addStatus.assignedFor,
-      [roleId]: user.id,
-      updatedBy: user.id,
-    });
-    const updateStaff = await this.ticketService.updateForSupport(
-      addStatus.ticketId,
+    const newTrack = await this.create(
       {
-        staffId: addStatus.assignedFor,
-        statusId: addStatus.statusId,
-        [roleId]: user.id,
-        updatedBy: user.id,
-      },
-      transaction,
-    );
-
-    this.logger.log(
-      `Create Status ${addStatus.status} for Ticket ${addStatus.ticketId}`,
-    );
-
-    return {
-      statusId: addStatus.statusId,
-      comments: addStatus?.comments || [],
-      ticketId: addStatus.ticketId,
-    };
-  }
-
-  async assignOrUnAssign(
-    addStatus: CreateTracking,
-    user: UserToken,
-    transaction: Transaction,
-  ) {
-    const action = await this.create(
-      {
-        statusId: addStatus.statusId,
+        status: addStatus.status,
+        comments: JSON.stringify(addStatus?.comments || []),
         ticketId: addStatus.ticketId,
-        adminId: user.id,
-        staffId: addStatus.assignedFor,
-        createdBy: user.id,
+        scheduleFor: addStatus.scheduleFor || null,
+        assignmentId: user.staffId,
+        createdBy: user.staffId,
       },
       transaction,
     );
-    this.logger.log(`${addStatus.status} for Ticket ${addStatus.ticketId}`);
 
     await this.notify(
       {
         id: addStatus.ticketId,
-        userId: addStatus.assignedFor,
+        userId: user.staffId,
         status: addStatus.status,
       },
-      [],
+      addStatus?.comments || [],
       transaction,
     );
 
-    return {
-      status: addStatus.status,
-      ticketId: addStatus.ticketId,
-      actionId: action.id,
-    };
+    return newTrack;
   }
 
   async openTicket(
@@ -147,81 +62,65 @@ export class TrackingService {
     userId: number,
     transaction: Transaction,
   ) {
-    const statusId = await this.StatusService.findOne(
-      addStatus.status,
+    const action = await this.create(
+      { status, ticketId: addStatus.ticketId, createdBy: userId },
       transaction,
     );
 
-    const action = await this.create(
-      { statusId, ticketId: addStatus.ticketId, createdBy: userId },
+    return action;
+  }
+
+  async create(att, transaction: Transaction) {
+    const statusId = await this.StatusService.findOne(att.status, transaction);
+    console.log(statusId);
+    await this.checkTicket(att.ticketId, transaction);
+
+    const addAction = await this.trackingRepo.create(
+      { ...att, statusId: statusId.id },
+      { transaction },
+    );
+
+    await this.ticketService.update(
+      {
+        statusId,
+        updatedBy: att.assignmentId,
+      },
+      {
+        id: att.ticketId,
+        assignmentId: att.assignmentId,
+      },
       transaction,
     );
 
     this.logger.log(
-      `Create Status ${addStatus.status} for Ticket ${addStatus.ticketId}`,
+      `Create new Tracking with #${att.statusId} for Ticket ${att.ticketId}`,
     );
-
-    return {
-      status: 'Open',
-      statusId,
-      ticketId: addStatus.ticketId,
-      actionId: action.id,
-    };
+    return addAction;
   }
+  async checkTicket(ticketId: number, transaction: Transaction) {
+    const checkConfirm = await this.ticketService.CheckConfirm(ticketId);
 
-  async create(att, transaction: Transaction) {
-    const checkCreated = await this.trackingRepo.findOne({
+    CheckExisting(checkConfirm, {
+      msg: "The Ticket isn't Confirmed or Closed ",
+      trace: 'TrackingService.matchStatus',
+    });
+
+    const statusId = await this.StatusService.findOne('Closed', transaction);
+    const checkClosed = await this.trackingRepo.findOne({
       where: {
         [Op.and]: {
-          statusId: att.statusId,
-          ticketId: att.ticketId,
-          createdBy: att.createdBy,
+          statusId: statusId,
+          ticketId: ticketId,
         },
       },
       transaction,
     });
-    CheckExisting(!checkCreated, {
-      msg: ` this all ready exist in same staff and created By `,
-      trace: `Tracking.create`,
-    });
-    const addAction = await this.trackingRepo.create(att, { transaction });
-
-    this.logger.log(`Add Action with ID =${addAction.id}`);
-
-    return { id: addAction.id };
-  }
-
-  async confirmTicket(
-    confirm: ConfirmTicket,
-    userId: number,
-    transaction: Transaction,
-  ) {
-    if (confirm.isConfirm === 'decline') return 'Decline Accept ';
-
-    const openTic = await this.openTicket(
-      {
-        status: STATUS.OPEN,
-        ticketId: confirm.ticketId,
-      },
-      userId,
-      transaction,
-    );
-    const confirmTic = await this.ticketService.updateForSupport(
-      confirm.ticketId,
-      {
-        isConfirm: true,
-        updateBy: userId,
-        statusId: openTic.statusId,
-      },
-      transaction,
-    );
-
-    this.eventEmitter.emit(TICKET_EVENTS.CREATE, {
-      userId,
-      ticketId: confirm.ticketId,
+    CheckExisting(!checkClosed, {
+      msg: ` this all ready Closed `,
+      trace: `Tracking.checkClosed`,
     });
 
-    return `Ticket with #${confirm.ticketId} Accepted`;
+    return checkClosed;
   }
 
   async notify(ticket, comment?: string[], transaction?: Transaction) {

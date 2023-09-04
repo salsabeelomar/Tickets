@@ -16,6 +16,9 @@ import { SearchTicketDto } from './dto/seacrh.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UserToken } from '../auth/dto/generate-Token.dto';
+import { ConfirmTicket } from './dto/confirm-ticket.dto';
+import { CheckExisting } from 'src/common/utils/checkExisting';
+import { SupportStaff } from '../support-staff/models/support-staff.model';
 
 @Injectable()
 export class TicketService {
@@ -92,12 +95,17 @@ export class TicketService {
     this.logger.log(`Get User Tickets with ID ${userId}`);
     return getAllTicket;
   }
-
-  async updatedOne(
+  async updatedOneForUser(
     updated: UpdateTicketDto,
     userId: number,
     transaction: Transaction,
   ) {
+    const getTicket = await this.getTicById(updated.id);
+
+    CheckExisting(getTicket, {
+      msg: 'Ticket Not Exist',
+      trace: 'TicketService.UpdateOne',
+    });
     await this.ticketRepo.update(
       {
         ...updated,
@@ -108,24 +116,41 @@ export class TicketService {
         transaction,
       },
     );
-
-    const info = await this.getTicById(updated.id);
-    this.eventEmitter.emit(TICKET_EVENTS.UPDATE, {
-      ticketId: updated.id,
-      ...info.toJSON(),
-    });
-
-    return { msg: `Ticket Updated Successfully` };
+    this.logger.log(`Ticket With #${updated.id} Updated Successfully`);
+    return `Ticket With #${updated.id} Updated Successfully`;
   }
 
-  async updateForSupport(id: number, att, transaction: Transaction) {
-    const updateTic = await this.ticketRepo.update(att, {
-      where: {
-        id,
+  async updateForAdmin(
+    id: number,
+    staffId: number,
+    adminId: number,
+    transaction: Transaction,
+  ) {
+    const updateTic = await this.ticketRepo.update(
+      {
+        assignmentId: staffId,
+        adminId,
+        updatedBy: adminId,
       },
+      {
+        where: {
+          id,
+        },
+        transaction,
+      },
+    );
+    console.log(updateTic);
+    this.logger.log(`Update the Ticket with Id ${id}`);
+
+    return updateTic;
+  }
+
+  async update(att, condition, transaction: Transaction) {
+    const updateTic = await this.ticketRepo.update(att, {
+      where: condition,
       transaction,
     });
-    this.logger.log(`Update the Ticket with Id ${id}`);
+    this.logger.log(`Update the Ticket with Id ${condition.id}`);
 
     return updateTic;
   }
@@ -139,19 +164,13 @@ export class TicketService {
           attributes: ['email', 'id', 'username'],
         },
         {
-          model: User,
-          as: 'staff',
-          attributes: ['email', 'id', 'username'],
-        },
-        {
           model: TicketStatus,
-
           attributes: ['status'],
         },
       ],
     });
     this.logger.log(`Get Ticket with Id ${id}`);
-    return getTic;
+    return getTic.toJSON();
   }
   async search(querySearch: SearchTicketDto, transaction: Transaction) {
     const searched = await this.ticketRepo.scope('basic').findAll({
@@ -241,14 +260,43 @@ export class TicketService {
         {
           model: TicketStatus,
           attributes: ['status'],
-          where: {
-            status: STATUS.CLOSED,
-          },
         },
       ],
     });
     this.logger.log(`Checking the Ticket Is Confirmed ..`);
 
     return checkCon?.isConfirm;
+  }
+
+  async confirmTicket(
+    confirm: ConfirmTicket,
+    userId: number,
+    transaction: Transaction,
+  ) {
+    if (!confirm.isConfirm) return 'Decline Accept ';
+
+    // const openTic = await this.openTicket(
+    //   {
+    //     status: STATUS.OPEN,
+    //     ticketId: confirm.ticketId,
+    //   },
+    //   userId,
+    //   transaction,
+    // );
+    await this.updatedOneForUser(
+      {
+        id: confirm.ticketId,
+        isConfirm: true,
+      },
+      userId,
+      transaction,
+    );
+
+    this.eventEmitter.emit(TICKET_EVENTS.CREATE, {
+      userId,
+      ticketId: confirm.ticketId,
+    });
+
+    return `Ticket with #${confirm.ticketId} Accepted`;
   }
 }

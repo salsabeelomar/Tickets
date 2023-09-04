@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PROVIDER } from 'src/common/constant/providers.constant';
 import { User } from './models/user.model';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Transaction } from 'sequelize';
 import { CreateAuthDto } from '../auth/dto/create-auth.dto';
 import * as bcrypt from 'bcrypt';
+import { ROLES } from 'src/common/types/Roles.types';
 
 @Injectable()
 export class UserService {
@@ -27,13 +28,12 @@ export class UserService {
 
     const hashPass = bcrypt.hashSync(user.password, 10);
 
-    const newUser = await this.userRepo.create(
+    const newUser = await this.userRepo.scope('basic').create(
       {
         ...user,
         password: hashPass,
       },
       {
-        returning: ['id', 'username', 'email', 'role'],
         transaction,
       },
     );
@@ -65,6 +65,8 @@ export class UserService {
         isActive: user.isActive,
       },
     };
+    if (user.role === ROLES.SUPPORT_STAFF)
+      payload.user['staffId'] = user.staffId;
     this.winstonLogger.log(`Generate Token  for user id = ${user.id}`);
 
     return this.jwt.sign(payload);
@@ -110,5 +112,13 @@ export class UserService {
     );
     this.winstonLogger.warn(` User with ID ${id} Activated Successfully `);
     return true;
+  }
+  verifyToken(token: string) {
+    try {
+      const decoded = this.jwt.verify(token);
+      return decoded;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid Token');
+    }
   }
 }

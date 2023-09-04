@@ -14,7 +14,6 @@ import { Role } from 'src/common/decorator/role.decorator';
 import { ROLES } from 'src/common/types/Roles.types';
 import { User } from 'src/common/decorator/user.decorator';
 import { TransactionInter } from 'src/common/interceptor/Transaction.interceptor';
-import { ConfirmTicket } from '../ticket/dto/confirm-ticket.dto';
 import { UserToken } from '../auth/dto/generate-Token.dto';
 
 @UseInterceptors(TransactionInter)
@@ -29,15 +28,16 @@ export class TrackingController {
     @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
-    return this.trackingService.matchStatus(ticketActions, user, trans);
+
+    return this.trackingService.addTracking(ticketActions, user, trans);
   }
   @Role(ROLES.USER)
-  @Get('confirm')
+  @Post('open')
   confirm(
-    @Query() confirm: ConfirmTicket,
+    @Body() openTic: CreateTracking,
     @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
-    return this.trackingService.confirmTicket(confirm, user.id, trans);
+    return this.trackingService.openTicket(openTic, user.id, trans);
   }
 }

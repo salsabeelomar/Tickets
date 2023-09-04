@@ -18,6 +18,16 @@ export class CategoryService {
     userId: number,
     transaction: Transaction,
   ) {
+    const getCategory = await this.findByCategoryName(
+      createCategory.category,
+      transaction,
+    );
+    
+    CheckExisting(!getCategory, {
+      msg: 'Category Already Exist',
+      trace: 'CategoryService.create',
+    });
+
     const newCategory = await this.categoryRepo.create(
       {
         ...createCategory,
@@ -53,6 +63,14 @@ export class CategoryService {
     return category;
   }
 
+  async findByCategoryName(category: string, transaction: Transaction) {
+    const getTag = await this.categoryRepo.scope('basic').findOne({
+      where: { category },
+      transaction,
+    });
+
+    return getTag;
+  }
   // update(id: number, updateCategoryDto: UpdateCategoryDto) {
   //   return `This action updates a #${id} category`;
   // }

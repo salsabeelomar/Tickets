@@ -6,10 +6,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { VerifyEmailService } from 'src/modules/verify-email/verify-email.service';
 import { UserModule } from '../user/user.module';
+import { SupportStaffModule } from '../support-staff/support-staff.module';
 
 @Module({
   imports: [
     DatabaseModule,
+
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
@@ -21,6 +23,7 @@ import { UserModule } from '../user/user.module';
       },
     }),
     UserModule,
+    SupportStaffModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, VerifyEmailService],

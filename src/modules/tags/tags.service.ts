@@ -18,6 +18,11 @@ export class TagsService {
     userId: number,
     transaction: Transaction,
   ) {
+    const getTag = await this.findByTagName(createTagDto.tag, transaction);
+    CheckExisting(!getTag, {
+      msg: 'Tag Already Exist',
+      trace: 'TagService.create',
+    });
     const newTag = await this.tagRepo.create(
       {
         ...createTagDto,
@@ -54,9 +59,14 @@ export class TagsService {
     return tag;
   }
 
-  // update(id: number, updateTagDto: UpdateTagDto) {
-  //   return `This action updates a #${id} tag`;
-  // }
+  async findByTagName(tag: string, transaction: Transaction) {
+    const getTag = await this.tagRepo.scope('basic').findOne({
+      where: { tag },
+      transaction,
+    });
+
+    return getTag;
+  }
 
   // remove(id: number) {
   //   return `This action removes a #${id} tag`;

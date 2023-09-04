@@ -18,11 +18,13 @@ export class CreateTracking {
 
   @ApiProperty()
   @IsNumber()
+  @IsOptional()
   statusId: number;
 
   @ApiProperty()
-  @IsEnum(STATUS)
-  status: STATUS = STATUS.OPEN;
+  @IsString()
+  @IsNotEmpty()
+  status: string;
 
   @ApiProperty()
   @IsNumber()

@@ -20,5 +20,6 @@ import { NotificationService } from './notification.gateway';
     }),
   ],
   providers: [NotificationService],
+  exports: [NotificationService],
 })
 export class NotificationModule {}

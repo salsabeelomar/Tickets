@@ -27,22 +27,30 @@ export class AssignmentTicketController {
   ) {}
 
   @Role(ROLES.ADMIN)
-  @Post()
-  create(
+  @Post('assign')
+  assign(
     @Body() createAssignment: CreateAssignmentDto,
     @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
-    return this.assignmentTicketService.create(
+    return this.assignmentTicketService.assign(
       createAssignment,
       user.id,
       trans,
     );
   }
-
-  @Get()
-  findAll() {
-    return this.assignmentTicketService.findAll();
+  @Role(ROLES.ADMIN)
+  @Post('assign')
+  unassign(
+    @Body() createAssignment: CreateAssignmentDto,
+    @User() user: UserToken,
+    @TransactionDeco() trans: Transaction,
+  ) {
+    return this.assignmentTicketService.unAssign(
+      createAssignment,
+      user.id,
+      trans,
+    );
   }
 
   @Get(':id')

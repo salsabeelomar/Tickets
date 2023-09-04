@@ -1,4 +1,4 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { User } from '../user/models/user.model';
 import { PROVIDER } from 'src/common/constant/providers.constant';
 import { UserService } from '../user/user.service';
@@ -10,8 +10,9 @@ import { UserToken } from './dto/generate-Token.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { VerifyEmailService } from 'src/modules/verify-email/verify-email.service';
 import { Transaction } from 'sequelize';
-import { ROLES } from 'src/common/types/Roles.types';
 import { CreateAuthDto } from './dto/create-auth.dto';
+import { ROLES } from 'src/common/types/Roles.types';
+import { StaffService } from '../support-staff/support-staff.service';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,7 @@ export class AuthService {
   constructor(
     @Inject(PROVIDER.USER) private readonly userRepo: typeof User,
     private readonly userService: UserService,
-    private readonly jwt: JwtService,
+    private readonly staffService: StaffService,
     private readonly verifyEmail: VerifyEmailService,
   ) {}
   async addUser(user: CreateAuthDto, transaction: Transaction) {
@@ -65,6 +66,13 @@ export class AuthService {
       isActive: getUser.isActive,
       role: getUser.role,
     };
+    if (getUser.role === ROLES.SUPPORT_STAFF) {
+      const staff = await this.staffService.findStaffByUserId(
+        userData.id,
+        transaction,
+      );
+      userData.staffId = staff.id;
+    }
 
     this.winstonLogger.log(` User with ID=${getUser.id} Signed `);
     return {
@@ -74,7 +82,7 @@ export class AuthService {
   }
 
   async verifyUser(token: string, transaction: Transaction) {
-    const decoded = this.verifyToken(token);
+    const decoded = this.userService.verifyToken(token);
     const getUser = await this.userService.getUserById(decoded.sub);
     CheckExisting(getUser, {
       msg: 'User not Found ',
@@ -88,14 +96,5 @@ export class AuthService {
     );
 
     return { msg: 'Email Verify Successfully ' };
-  }
-
-  verifyToken(token: string) {
-    try {
-      const decoded = this.jwt.verify(token);
-      return decoded;
-    } catch (error) {
-      throw new UnauthorizedException('Invalid Token');
-    }
   }
 }

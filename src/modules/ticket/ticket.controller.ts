@@ -23,6 +23,7 @@ import { SearchTicketDto } from './dto/seacrh.dto';
 import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UserToken } from '../auth/dto/generate-Token.dto';
+import { ConfirmTicket } from './dto/confirm-ticket.dto';
 
 @UseInterceptors(TransactionInter)
 @Controller('ticket')
@@ -81,7 +82,7 @@ export class TicketController {
     @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
-    return this.ticketService.updatedOne(
+    return this.ticketService.updatedOneForUser(
       { id, ...updateTicketDto },
       user.id,
       trans,
@@ -89,10 +90,16 @@ export class TicketController {
   }
 
   @Get('resolved-issues')
-  getResolved(
+  getResolved(@User() user: UserToken, @TransactionDeco() trans: Transaction) {
+    return this.ticketService.getClosedTic(trans);
+  }
+  @Role(ROLES.USER)
+  @Get('confirm')
+  confirm(
+    @Query() confirm: ConfirmTicket,
     @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
-    return this.ticketService.getClosedTic(trans);
+    return this.ticketService.confirmTicket(confirm, user.id, trans);
   }
 }

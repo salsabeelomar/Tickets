@@ -10,6 +10,8 @@ import { JwtService } from '@nestjs/jwt';
 import { CheckExisting } from '../utils/checkExisting';
 import { UserService } from 'src/modules/user/user.service';
 import { WinstonLogger } from '../logger/winston.logger';
+import { ROLES } from '../types/Roles.types';
+import { StaffService } from 'src/modules/support-staff/support-staff.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -30,6 +32,10 @@ export class AuthGuard implements CanActivate {
       const token = request.headers.authorization?.split('Bearer ')[1];
       const decoded = await this.jwtService.verifyAsync(token);
       const user = await this.userService.getUserById(decoded.sub);
+
+      if (user.role === ROLES.SUPPORT_STAFF) {
+        user.staffId = decoded.user.staffId;
+      }
 
       this.logger.log(
         ` Auth user with ID ${decoded.sub} Role ${decoded.user.role}`,
