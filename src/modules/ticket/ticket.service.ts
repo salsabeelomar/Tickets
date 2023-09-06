@@ -58,7 +58,7 @@ export class TicketService {
     };
   }
 
-  async findAll() {
+  async findAll(transaction: Transaction) {
     const getAllTicket = await this.ticketRepo.scope('basic').findAll({
       include: [
         {
@@ -67,9 +67,15 @@ export class TicketService {
           attributes: ['id', 'username'],
         },
         {
-          model: User,
-          as: 'staff',
-          attributes: ['id', 'username'],
+          model: SupportStaff,
+          attributes: ['id'],
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['email', 'username'],
+            },
+          ],
         },
         {
           model: TicketStatus,
@@ -79,10 +85,11 @@ export class TicketService {
       where: {
         isConfirm: true,
       },
+      transaction,
     });
     this.logger.log(`Get All Tickets ${getAllTicket.length}`);
     return {
-      Tickets: getAllTicket,
+      data: { tickets: getAllTicket },
     };
   }
   async getUserTicket(userId: number) {
@@ -98,14 +105,14 @@ export class TicketService {
       },
     });
     this.logger.log(`Get User Tickets with ID ${userId}`);
-    return getAllTicket;
+    return { data: { tickets: getAllTicket } };
   }
   async updatedOneForUser(
     updated: UpdateTicketDto,
     userId: number,
     transaction: Transaction,
   ) {
-    const getTicket = await this.getTicById(updated.id);
+    const getTicket = await this.getTicById(updated.id, transaction);
 
     CheckExisting(getTicket, {
       msg: 'Ticket Not Exist',
@@ -121,8 +128,12 @@ export class TicketService {
         transaction,
       },
     );
+    this.eventEmitter.emit(TICKET_EVENTS.UPDATE, {
+      ...updated,
+      ticketId: updated.id,
+    });
     this.logger.log(`Ticket With #${updated.id} Updated Successfully`);
-    return `Ticket With #${updated.id} Updated Successfully`;
+    return { msg: `Ticket With #${updated.id} Updated Successfully` };
   }
 
   async updateForAdmin(
@@ -159,7 +170,7 @@ export class TicketService {
     return updateTic;
   }
 
-  async getTicById(id: number, transaction?: Transaction) {
+  async getTicById(id: number, transaction: Transaction) {
     const getTic = await this.ticketRepo.scope('basic').findByPk(id, {
       include: [
         {
@@ -172,6 +183,7 @@ export class TicketService {
           attributes: ['status'],
         },
       ],
+      transaction,
     });
     this.logger.log(`Get Ticket with Id ${id}`);
     return {
@@ -267,7 +279,7 @@ export class TicketService {
         },
       };
     else where = { isConfirm: true };
-    console.log(where);
+
     const searched = await this.ticketRepo.scope('basic').findAll({
       include: [
         {
@@ -321,9 +333,9 @@ export class TicketService {
     return { searched };
   }
 
-  async getClosedTic(transaction?: Transaction) {
+  async getClosedTic(transaction: Transaction) {
     const getTic = await this.ticketRepo.findAll({
-      // attributes: ['id', 'title', 'description', 'statusId', 'createdAt'],
+      attributes: ['id', 'title', 'description', 'statusId', 'createdAt'],
       include: [
         {
           model: User,
@@ -332,18 +344,18 @@ export class TicketService {
         },
         {
           model: TicketStatus,
-          attributes: ['status'],
+          attributes: ['status', 'code'],
 
-          // where: {
-          //   status: { [Op.or]: [Status.Resolved, Status.Closed] },
-          // },
+          where: {
+            status: 'Resolved',
+          },
         },
       ],
 
       transaction,
     });
-    this.logger.log(`Get Ticket with Id`);
-    return getTic;
+    this.logger.log(`Get Resolved Ticket with Id`);
+    return { data: { tickets: getTic } };
   }
 
   async CheckConfirm(ticketId: number) {
@@ -366,7 +378,9 @@ export class TicketService {
     userId: number,
     transaction: Transaction,
   ) {
-    if (!confirm.isConfirm) return 'Decline Accept ';
+    if (String(confirm.isConfirm) == 'false')
+      return this.removeTicket(confirm.ticketId, userId, transaction);
+
     await this.updatedOneForUser(
       {
         id: confirm.ticketId,
@@ -380,8 +394,25 @@ export class TicketService {
       userId,
       ticketId: confirm.ticketId,
     });
+
     return {
       msg: `Ticket with #${confirm.ticketId} Accepted`,
     };
+  }
+  async removeTicket(id: number, userId: number, transaction: Transaction) {
+    await this.update(
+      {
+        deletedAt: new Date(),
+        deletedBy: userId,
+      },
+      {
+        userId,
+        id,
+      },
+      transaction,
+    );
+    this.logger.log(`Ticket With #${id} Deleted Successfully`);
+
+    return { msg: `Ticket With #${id} Deleted Successfully` };
   }
 }

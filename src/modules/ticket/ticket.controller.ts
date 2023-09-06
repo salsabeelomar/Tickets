@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   ParseIntPipe,
   Query,
+  Delete,
   Inject,
 } from '@nestjs/common';
 import { TicketService } from './ticket.service';
@@ -26,7 +27,6 @@ import { UserToken } from '../auth/dto/generate-Token.dto';
 import { ConfirmTicket } from './dto/confirm-ticket.dto';
 import { SearchAssigneeDto } from './dto/search-assignee.dto';
 import { SearchStatusDto } from './dto/search-status.dto';
-import { NotActive } from 'src/common/decorator/isActive.decorator';
 
 @UseInterceptors(TransactionInter)
 @Controller('ticket')
@@ -49,11 +49,18 @@ export class TicketController {
   @UseInterceptors(CacheInterceptor)
   @Role(ROLES.SUPPORT_STAFF, ROLES.ADMIN)
   @Get()
-  findAll() {
-    return this.ticketService.findAll();
+  async findAll(@TransactionDeco() trans: Transaction) {
+    const allTic = await this.cacheManager.get('tickets');
+    if (allTic) {
+      return allTic;
+    }
+    const tickets = await this.ticketService.findAll(trans);
+    await this.cacheManager.set('tickets', tickets);
+    return tickets;
   }
 
-  @Role(ROLES.SUPPORT_STAFF, ROLES.USER)
+  @UseInterceptors(CacheInterceptor)
+  @Role(ROLES.SUPPORT_STAFF, ROLES.ADMIN)
   @Get('open-ticket')
   async openTicket(@TransactionDeco() trans: Transaction) {
     const opened = await this.cacheManager.get('open-ticket');
@@ -96,8 +103,7 @@ export class TicketController {
   @Patch(':id')
   updatedOne(
     @Param('id', ParseIntPipe) id: number,
-    @Body()
-    updateTicketDto: UpdateTicketDto,
+    @Body() updateTicketDto: UpdateTicketDto,
     @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
@@ -107,9 +113,19 @@ export class TicketController {
       trans,
     );
   }
+  @Role(ROLES.USER)
+  @Delete(':id')
+  deleteTic(
+    @Param('id', ParseIntPipe) id: number,
+    @User() user: UserToken,
+    @TransactionDeco() trans: Transaction,
+  ) {
+    return this.ticketService.removeTicket(id, user.id, trans);
+  }
 
   @Get('resolved-issues')
-  getResolved(@User() user: UserToken, @TransactionDeco() trans: Transaction) {
+  @Role(ROLES.SUPPORT_STAFF, ROLES.ADMIN)
+  getResolved(@TransactionDeco() trans: Transaction) {
     return this.ticketService.getClosedTic(trans);
   }
   @Role(ROLES.USER)

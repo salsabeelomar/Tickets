@@ -20,7 +20,10 @@ export class FeedbacksService {
     userId: number,
     transaction: Transaction,
   ) {
-    const ticket = await this.ticketService.getTicById(newFeed.ticketId);
+    const ticket = await this.ticketService.getTicById(
+      newFeed.ticketId,
+      transaction,
+    );
     if (ticket.ticketStatus.status !== 'Resolved')
       throw new BadRequestException('This Ticket Not Resolved Yet');
 

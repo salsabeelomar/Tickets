@@ -60,6 +60,7 @@ export class TrackingService {
         userId: user.id,
         status: addStatus.status,
       },
+      transaction,
       addStatus?.comments || [],
     );
 
@@ -118,7 +119,7 @@ export class TrackingService {
       },
       transaction,
     });
-    console.log(checkClosed);
+
     CheckExisting(!checkClosed, {
       msg: ` this all ready Closed `,
       trace: `Tracking.checkClosed`,
@@ -127,8 +128,8 @@ export class TrackingService {
     return checkClosed;
   }
 
-  async notify(ticket, comment?: string[]) {
-    const ticInfo = await this.ticketService.getTicById(ticket.id);
+  async notify(ticket, transaction: Transaction, comment?: string[]) {
+    const ticInfo = await this.ticketService.getTicById(ticket.id, transaction);
 
     if (comment?.length > 0) {
       this.eventEmitter.emit(TICKET_EVENTS.ADD_RESPONSE, {

@@ -6,7 +6,8 @@ import { ApiProperty } from '@nestjs/swagger';
 export class UpdateTicketDto extends PartialType(CreateTicketDto) {
   @ApiProperty()
   @IsNumber()
-  id: number;
+  @IsOptional()
+  id?: number;
 
   @ApiProperty()
   @IsNumber()

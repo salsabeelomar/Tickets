@@ -41,7 +41,7 @@ export class TicketEmitterService {
   @OnEvent(TICKET_EVENTS.UPDATE)
   notifyUpdatedTic(@MessageBody() payload) {
     return this.notification.server
-      .to(ROOM.SUPPORT_STAFF + payload.staff.id)
+      .to(ROOM.SUPPORT_STAFF)
       .emit(TICKET_EVENTS.UPDATE, payload);
   }
 }

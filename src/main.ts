@@ -31,7 +31,7 @@ async function bootstrap() {
   app.useGlobalGuards(new AuthGuard(jwt, userService, reflector));
   app.useGlobalGuards(new RoleGuard(reflector));
   app.useGlobalGuards(new ActiveGuard(reflector));
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
 
