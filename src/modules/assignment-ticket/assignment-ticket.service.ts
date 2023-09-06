@@ -69,7 +69,7 @@ export class AssignmentTicketService {
     adminId: number,
     transaction: Transaction,
   ) {
-    const check = await this.checkAssign({
+    const check = await this.checkBeforeAssignment({
       ...newAssignment,
       assigned: ASSIGNMENT.ASSIGNED,
     });
@@ -80,6 +80,13 @@ export class AssignmentTicketService {
       {
         transaction,
       },
+    );
+
+    await this.remove(
+      newAssignment.ticketId,
+      newAssignment.staffId,
+      adminId,
+      transaction,
     );
 
     await this.ticketService.updateForAdmin(
@@ -94,30 +101,42 @@ export class AssignmentTicketService {
     return { data: { newAssignee: createAssignment }, msg: 'Assigned Success' };
   }
 
-  async checkAssign(assignment: CreateAssignmentDto) {
-    const confirmationTic = await this.ticketService.CheckConfirm(
-      assignment.ticketId,
-    );
-    if (!confirmationTic)
-      throw new BadRequestException('Ticket Not Confirmed Yet');
+  async checkBeforeAssignment(assignment: CreateAssignmentDto) {
+    await this.ticketService.CheckConfirm(assignment.ticketId);
 
     const getAssignment = await this.assignmentRepo.scope('basic').findOne({
       where: {
         ...assignment,
       },
     });
+
     return getAssignment;
   }
-  findOne(id: number) {
-    return `This action returns a #${id} assignmentTicket`;
-  }
 
-  update(id: number, updateAssignmentTicketDto: UpdateAssignmentTicketDto) {
-    return `This action updates a #${id} assignmentTicket`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} assignmentTicket`;
+  async remove(
+    ticketId: number,
+    staffId: number,
+    adminId: number,
+    transaction: Transaction,
+  ) {
+    await this.assignmentRepo.update(
+      {
+        deletedAt: new Date(),
+        deletedBy: adminId,
+      },
+      {
+        where: {
+          assigned: ASSIGNMENT.ASSIGNED,
+          ticketId,
+          staffId,
+          adminId,
+        },
+        transaction,
+      },
+    );
+    return {
+      msg: `Assignment with ticketId #${ticketId} Deleted Successfully`,
+    };
   }
   async notify(staffId: number, ticketId: number) {
     const getNotified = await this.StaffService.findStaffById(staffId);
@@ -127,6 +146,7 @@ export class AssignmentTicketService {
       ticketId,
       status: ASSIGNMENT.ASSIGNED,
     });
+
     return this.verifyEmailService.assignedTicket(getNotified.user);
   }
 }

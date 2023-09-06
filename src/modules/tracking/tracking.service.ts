@@ -31,6 +31,7 @@ export class TrackingService {
     user: UserToken,
     transaction: Transaction,
   ) {
+    await this.ticketService.CheckConfirm(addStatus.ticketId);
     const newTrack = await this.create(
       {
         statusId: addStatus.statusId,
@@ -68,19 +69,31 @@ export class TrackingService {
   }
 
   async openTicket(
-    addStatus: Omit<CreateTracking, 'statusId'>,
+    addStatus: CreateTracking,
     userId: number,
     transaction: Transaction,
   ) {
     const action = await this.create(
       {
         status: addStatus.status,
+        statusId: addStatus.statusId,
         ticketId: addStatus.ticketId,
         createdBy: userId,
       },
       transaction,
     );
 
+    await this.ticketService.update(
+      {
+        statusId: addStatus.statusId,
+        updatedBy: userId,
+      },
+      {
+        id: addStatus.ticketId,
+        userId,
+      },
+      transaction,
+    );
     return {
       data: {
         newAction: action,
@@ -101,13 +114,6 @@ export class TrackingService {
   }
 
   async checkTicket(ticketId: number, transaction: Transaction) {
-    const checkConfirm = await this.ticketService.CheckConfirm(ticketId);
-
-    CheckExisting(checkConfirm, {
-      msg: "The Ticket isn't Confirmed or Closed ",
-      trace: 'TrackingService.matchStatus',
-    });
-
     const statusId = await this.StatusService.findOne('Closed', transaction);
 
     const checkClosed = await this.trackingRepo.findOne({

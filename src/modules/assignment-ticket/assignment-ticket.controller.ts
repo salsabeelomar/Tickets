@@ -40,7 +40,7 @@ export class AssignmentTicketController {
     );
   }
   @Role(ROLES.ADMIN)
-  @Post('assign')
+  @Post('unassign')
   unassign(
     @Body() createAssignment: CreateAssignmentDto,
     @User() user: UserToken,
@@ -51,23 +51,5 @@ export class AssignmentTicketController {
       user.id,
       trans,
     );
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.assignmentTicketService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateAssignmentTicketDto: UpdateAssignmentTicketDto,
-  ) {
-    return this.assignmentTicketService.update(+id, updateAssignmentTicketDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.assignmentTicketService.remove(+id);
   }
 }

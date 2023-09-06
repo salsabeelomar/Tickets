@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transaction, Op } from 'sequelize';
 
@@ -359,18 +359,27 @@ export class TicketService {
   }
 
   async CheckConfirm(ticketId: number) {
-    const checkCon = await this.ticketRepo.findByPk(ticketId, {
-      attributes: ['isConfirm'],
+    const checkCon = await this.ticketRepo.scope('basic').findOne({
       include: [
         {
           model: TicketStatus,
           attributes: ['status'],
         },
       ],
+      where: {
+        [Op.and]: [{ id: ticketId }],
+      },
     });
     this.logger.log(`Checking the Ticket Is Confirmed ..`);
 
-    return checkCon?.isConfirm;
+
+    if (!checkCon?.isConfirm)
+      throw new BadRequestException('Ticket Not Confirmed Yet');
+
+    if (!checkCon?.statusId)
+      throw new BadRequestException('Ticket Not Opened Yet');
+
+    return checkCon;
   }
 
   async confirmTicket(
