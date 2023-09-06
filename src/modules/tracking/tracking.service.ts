@@ -1,19 +1,16 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { CreateTracking } from './dto/create-tracking.dto';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { PROVIDER } from 'src/common/constant/providers.constant';
 import { Tracking } from './models/tracking.model';
 import { TicketStatusService } from '../ticket-status/ticket-status.service';
-import { Op, Transaction } from 'sequelize';
-import { CheckExisting } from 'src/common/utils/checkExisting';
+import { Transaction } from 'sequelize';
 import { TicketService } from '../ticket/ticket.service';
 import { VerifyEmailService } from '../verify-email/verify-email.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TICKET_EVENTS } from 'src/common/events/ticket.events';
 
 import { UserToken } from '../auth/dto/generate-Token.dto';
-import { Ticket } from '../ticket/models/ticket.model';
-import { TicketStatus } from '../ticket-status/models/ticket-status.model';
 
 @Injectable()
 export class TrackingService {
@@ -94,6 +91,12 @@ export class TrackingService {
       },
       transaction,
     );
+
+    this.eventEmitter.emit(TICKET_EVENTS.CREATE, {
+      userId,
+      ticketId: addStatus.ticketId,
+    });
+
     return {
       data: {
         newAction: action,
@@ -118,18 +121,13 @@ export class TrackingService {
 
     const checkClosed = await this.trackingRepo.findOne({
       where: {
-        [Op.and]: {
-          statusId: statusId,
-          ticketId: ticketId,
-        },
+        statusId: statusId.id,
+        ticketId: ticketId,
       },
       transaction,
     });
 
-    CheckExisting(!checkClosed, {
-      msg: ` this all ready Closed `,
-      trace: `Tracking.checkClosed`,
-    });
+    if (checkClosed) throw new BadRequestException('Ticket Already Closed');
 
     return checkClosed;
   }
@@ -163,31 +161,5 @@ export class TrackingService {
       ...ticInfo.user,
       title: ticInfo.title,
     });
-  }
-
-  async getLogicOfLate() {
-    const i = await this.trackingRepo.findAll({
-      attributes: ['scheduledFor', 'id'],
-      include: [
-        {
-          model: Ticket,
-          include: [
-            {
-              model: TicketStatus,
-              attributes: ['status'],
-              where: {
-                status: 'Scheduled',
-              },
-            },
-          ],
-        },
-      ],
-      where: {
-        scheduledFor: {
-          [Op.lt]: new Date(),
-        },
-      },
-    });
-    return i;
   }
 }
