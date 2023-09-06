@@ -66,29 +66,27 @@ export class TicketController {
     return getOpened;
   }
 
-  @NotActive()
+  @Role(ROLES.SUPPORT_STAFF)
   @Get('search/assignee')
   searchAssignee(
     @Query() searchAssigneeDto: SearchAssigneeDto,
-    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.ticketService.searchAssignee(searchAssigneeDto, trans);
   }
-  @NotActive()
+
+  @Role(ROLES.SUPPORT_STAFF)
   @Get('search/status')
   searchS(
     @Query() searchStatusDto: SearchStatusDto,
-    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.ticketService.searchByStatus(searchStatusDto, trans);
   }
-  @NotActive()
+  @Role(ROLES.SUPPORT_STAFF)
   @Get('search')
   search(
     @Query() query: SearchTicketDto,
-    @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
     return this.ticketService.search(query, trans);
