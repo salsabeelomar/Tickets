@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Post, Body, UseInterceptors } from '@nestjs/common';
 import { TrackingService } from './tracking.service';
 import { CreateTracking } from './dto/create-tracking.dto';
 import { TransactionDeco } from 'src/common/decorator/transaction.decorator';
@@ -28,7 +21,6 @@ export class TrackingController {
     @User() user: UserToken,
     @TransactionDeco() trans: Transaction,
   ) {
-
     return this.trackingService.addTracking(ticketActions, user, trans);
   }
   @Role(ROLES.USER)

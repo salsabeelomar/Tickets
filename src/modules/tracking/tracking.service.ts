@@ -6,15 +6,14 @@ import { Tracking } from './models/tracking.model';
 import { TicketStatusService } from '../ticket-status/ticket-status.service';
 import { Op, Transaction } from 'sequelize';
 import { CheckExisting } from 'src/common/utils/checkExisting';
-import { STATUS } from 'src/common/types/Status.types';
 import { TicketService } from '../ticket/ticket.service';
 import { VerifyEmailService } from '../verify-email/verify-email.service';
-import { ConfirmTicket } from '../ticket/dto/confirm-ticket.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TICKET_EVENTS } from 'src/common/events/ticket.events';
-import { TicketStatus } from '../ticket-status/models/ticket-status.model';
-import { User } from '../user/models/user.model';
+
 import { UserToken } from '../auth/dto/generate-Token.dto';
+import { Ticket } from '../ticket/models/ticket.model';
+import { TicketStatus } from '../ticket-status/models/ticket-status.model';
 
 @Injectable()
 export class TrackingService {
@@ -34,27 +33,37 @@ export class TrackingService {
   ) {
     const newTrack = await this.create(
       {
-        status: addStatus.status,
+        statusId: addStatus.statusId,
         comments: JSON.stringify(addStatus?.comments || []),
         ticketId: addStatus.ticketId,
-        scheduleFor: addStatus.scheduleFor || null,
-        assignmentId: user.staffId,
-        createdBy: user.staffId,
+        scheduledFor: addStatus.scheduledFor || null,
+        assignmentId: addStatus.assignedFor,
+        createdBy: user.id,
       },
       transaction,
     );
 
+    await this.ticketService.update(
+      {
+        statusId: addStatus.statusId,
+        assignmentId: addStatus.assignmentId,
+        updatedBy: addStatus.assignmentId,
+      },
+      {
+        id: addStatus.ticketId,
+      },
+      transaction,
+    );
     await this.notify(
       {
         id: addStatus.ticketId,
-        userId: user.staffId,
+        userId: user.id,
         status: addStatus.status,
       },
       addStatus?.comments || [],
-      transaction,
     );
 
-    return newTrack;
+    return { data: newTrack };
   }
 
   async openTicket(
@@ -63,40 +72,33 @@ export class TrackingService {
     transaction: Transaction,
   ) {
     const action = await this.create(
-      { status, ticketId: addStatus.ticketId, createdBy: userId },
+      {
+        status: addStatus.status,
+        ticketId: addStatus.ticketId,
+        createdBy: userId,
+      },
       transaction,
     );
 
-    return action;
+    return {
+      data: {
+        newAction: action,
+      },
+      msg: 'Open Ticket Successfully',
+    };
   }
 
   async create(att, transaction: Transaction) {
-    const statusId = await this.StatusService.findOne(att.status, transaction);
-    console.log(statusId);
     await this.checkTicket(att.ticketId, transaction);
 
-    const addAction = await this.trackingRepo.create(
-      { ...att, statusId: statusId.id },
-      { transaction },
-    );
-
-    await this.ticketService.update(
-      {
-        statusId,
-        updatedBy: att.assignmentId,
-      },
-      {
-        id: att.ticketId,
-        assignmentId: att.assignmentId,
-      },
-      transaction,
-    );
+    const addAction = await this.trackingRepo.create(att, { transaction });
 
     this.logger.log(
       `Create new Tracking with #${att.statusId} for Ticket ${att.ticketId}`,
     );
     return addAction;
   }
+
   async checkTicket(ticketId: number, transaction: Transaction) {
     const checkConfirm = await this.ticketService.CheckConfirm(ticketId);
 
@@ -106,6 +108,7 @@ export class TrackingService {
     });
 
     const statusId = await this.StatusService.findOne('Closed', transaction);
+
     const checkClosed = await this.trackingRepo.findOne({
       where: {
         [Op.and]: {
@@ -115,6 +118,7 @@ export class TrackingService {
       },
       transaction,
     });
+    console.log(checkClosed);
     CheckExisting(!checkClosed, {
       msg: ` this all ready Closed `,
       trace: `Tracking.checkClosed`,
@@ -123,7 +127,7 @@ export class TrackingService {
     return checkClosed;
   }
 
-  async notify(ticket, comment?: string[], transaction?: Transaction) {
+  async notify(ticket, comment?: string[]) {
     const ticInfo = await this.ticketService.getTicById(ticket.id);
 
     if (comment?.length > 0) {
@@ -140,84 +144,43 @@ export class TrackingService {
         title: ticInfo.title,
       });
     }
-    if (
-      ticket.status == STATUS.UNASSIGNED ||
-      ticket.status === STATUS.ASSIGNED
-    ) {
-      this.eventEmitter.emit(TICKET_EVENTS.ASSIGNMENT, {
-        notifiedId: ticInfo.staff.id,
-        ticketId: ticket.id,
-        status: ticket.status,
-      });
 
-      return this.verifyEmailService.sendUpdateTicket(ticket.status, {
-        ...ticInfo.toJSON().staff,
-        title: ticInfo.title,
-      });
-    } else {
-      this.eventEmitter.emit(TICKET_EVENTS.UPDATE_STATUS, {
-        notifiedId: ticInfo.userId,
-        title: ticInfo.title,
-        ticketId: ticket.id,
-        status: ticket.status,
-      });
+    this.eventEmitter.emit(TICKET_EVENTS.UPDATE_STATUS, {
+      notifiedId: ticInfo.userId,
+      title: ticInfo.title,
+      ticketId: ticket.id,
+      status: ticket.status,
+    });
 
-      return this.verifyEmailService.sendUpdateTicket(ticket.status, {
-        ...ticInfo.toJSON().user,
-        title: ticInfo.title,
-      });
-    }
+    return this.verifyEmailService.sendUpdateTicket(ticket.status, {
+      ...ticInfo.user,
+      title: ticInfo.title,
+    });
   }
 
-  async getLogicOfLate(status: STATUS) {
-    const getSearched = await this.trackingRepo.findAll({
-      attributes: ['createdAt', 'id', 'ticketId', 'sendEmail'],
+  async getLogicOfLate() {
+    const i = await this.trackingRepo.findAll({
+      attributes: ['scheduledFor', 'id'],
       include: [
         {
-          model: TicketStatus,
-          as: 'status',
-          attributes: ['status', 'id'],
-          where: {
-            status,
-          },
-        },
-        {
-          model: User,
-          as: 'staff',
-          attributes: ['email', 'username', 'id'],
+          model: Ticket,
+          include: [
+            {
+              model: TicketStatus,
+              attributes: ['status'],
+              where: {
+                status: 'Scheduled',
+              },
+            },
+          ],
         },
       ],
       where: {
-        staffId: {
-          [Op.not]: null,
+        scheduledFor: {
+          [Op.lt]: new Date(),
         },
       },
     });
-
-    getSearched.map(async (record) => {
-      const operation = await this.trackingRepo.findOne({
-        attributes: ['id'],
-        where: {
-          createdAt: { [Op.gt]: record['createdAt'] },
-          ticketId: record['ticketId'],
-        },
-      });
-
-      if (!operation && !record.sendEmail) {
-        this.verifyEmailService.sendLateEmails(record.staff);
-        await this.trackingRepo.update(
-          {
-            sendEmail: true,
-          },
-          {
-            where: {
-              id: record['id'],
-            },
-          },
-        );
-      }
-
-      return operation;
-    });
+    return i;
   }
 }

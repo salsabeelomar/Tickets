@@ -8,7 +8,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { STATUS } from 'src/common/types/Status.types';
 import { ApiProperty } from '@nestjs/swagger';
 export class CreateTracking {
   @ApiProperty()
@@ -29,13 +28,18 @@ export class CreateTracking {
   @ApiProperty()
   @IsNumber()
   @IsOptional()
+  assignmentId?: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
   assignedFor?: number;
 
   @ApiProperty()
   @Transform((value) => new Date(value.value))
   @IsDate()
   @IsOptional()
-  scheduleFor?: Date;
+  scheduledFor?: Date;
 
   @ApiProperty()
   @IsArray()

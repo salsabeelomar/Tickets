@@ -26,11 +26,13 @@ export class TicketStatusService {
       { transaction },
     );
     this.logger.log(`New Status For Tickets is Created`);
-    return createStatus;
+    return {
+      data: { newStatus: createStatus },
+      msg: 'New StatusAdded Successfully',
+    };
   }
 
   async findOne(status: string, transaction: Transaction) {
-    console.log('jjjjjjjjjjjjjjjjjjjjjjjjjj');
     const getStatus = await this.statusRepo.findOne({
       attributes: ['id'],
       where: {

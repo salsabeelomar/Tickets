@@ -58,7 +58,7 @@ export class SupportStaff extends Model {
     type: DataType.ENUM(...Object.values(STAFF_STATUS)),
     defaultValue: STAFF_STATUS.PENDING,
   })
-  status: STAFF_STATUS = STAFF_STATUS.PENDING;
+  status: STAFF_STATUS;
 
   @ForeignKey(() => User)
   @Column({

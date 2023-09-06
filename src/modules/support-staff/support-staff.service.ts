@@ -10,6 +10,7 @@ import { STAFF_STATUS } from 'src/common/types/staff-status.types';
 import { CreateAuthDto } from '../auth/dto/create-auth.dto';
 import { UserToken } from '../auth/dto/generate-Token.dto';
 import { CheckExisting } from 'src/common/utils/checkExisting';
+import { User } from '../user/models/user.model';
 
 @Injectable()
 export class StaffService {
@@ -57,11 +58,13 @@ export class StaffService {
 
     this.logger.log('Waiting Staff To Accept Invitation');
 
-    return { staff, msg: 'Waiting Staff To Accept Invitation' };
+    return { data: { staff }, msg: 'Waiting Staff To Accept Invitation' };
   }
   async verifyStaffInvitation(token: string, transaction: Transaction) {
     const decoded = this.userService.verifyToken(token);
+
     const getAsStaff = await this.findStaffByUserId(decoded.sub, transaction);
+
     if (decoded.user.isActive) {
       return this.acceptStaff(getAsStaff.id, decoded.sub, transaction);
     } else {
@@ -80,14 +83,22 @@ export class StaffService {
     return getStaff;
   }
   async findStaffById(id: number) {
-    const getStaff = await this.supportRepo.scope('basic').findByPk(id);
+    const getStaff = await this.supportRepo.scope('basic').findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['email', 'username'],
+        },
+      ],
+    });
 
     CheckExisting(getStaff, {
       msg: 'Staff with this Id not Found',
       trace: 'StaffService.findStaffById',
     });
 
-    return getStaff;
+    return getStaff.toJSON();
   }
 
   async update(updateStaff: UpdateStaffDto, transaction: Transaction) {
@@ -112,7 +123,7 @@ export class StaffService {
     );
     await this.userService.removeUser(id, userId, transaction);
     this.logger.log(`Staff with Id ${id} Deleted Successfully`);
-    return `Staff with Id ${id} Deleted Successfully`;
+    return { msg: `Staff with Id ${id} Deleted Successfully` };
   }
 
   async acceptStaff(id: number, userId: number, transaction: Transaction) {
@@ -124,6 +135,6 @@ export class StaffService {
     await this.userService.updateStatus(userId, true, transaction);
     this.logger.log(`Staff with Id ${id} Activated Successfully`);
 
-    return `Staff with Id ${id} Activated Successfully`;
+    return { msg: `Staff with Id ${id} Activated Successfully` };
   }
 }

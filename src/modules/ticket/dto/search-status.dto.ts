@@ -2,11 +2,7 @@ import { Transform } from 'class-transformer';
 import { IsDate, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class SearchTicketDto {
-  @ApiProperty()
-  @IsString()
-  username: string;
-
+export class SearchStatusDto {
   @ApiProperty()
   @IsString()
   status: string;

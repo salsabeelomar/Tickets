@@ -22,7 +22,7 @@ export class CategoryService {
       createCategory.category,
       transaction,
     );
-    
+
     CheckExisting(!getCategory, {
       msg: 'Category Already Exist',
       trace: 'CategoryService.create',
@@ -37,7 +37,12 @@ export class CategoryService {
     );
     this.logger.log(`Create new Category ${createCategory.category}  `);
 
-    return newCategory;
+    return {
+      data: {
+        category: newCategory,
+      },
+      msg: 'New Category Add Successfully',
+    };
   }
 
   async findAll(transaction: Transaction) {
@@ -47,7 +52,11 @@ export class CategoryService {
 
     this.logger.log(`Get All Categories `);
 
-    return categories;
+    return {
+      data: {
+        categories,
+      },
+    };
   }
 
   async findById(id: number, transaction: Transaction) {
@@ -60,7 +69,9 @@ export class CategoryService {
     });
     this.logger.log(`Get All Categories `);
 
-    return category;
+    return {
+      data: { category },
+    };
   }
 
   async findByCategoryName(category: string, transaction: Transaction) {

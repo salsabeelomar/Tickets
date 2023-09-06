@@ -1,9 +1,9 @@
 'use strict';
 module.exports = {
-  up: (queryInterface, Sequelize) => {
+  up(queryInterface, Sequelize) {
     return queryInterface.sequelize.transaction(async (t) => {
       await queryInterface.createTable(
-        'ticket_status',
+        'users',
         {
           id: {
             allowNull: false,
@@ -11,39 +11,47 @@ module.exports = {
             primaryKey: true,
             type: Sequelize.INTEGER,
           },
-          status: {
-            allowNull: false,
-            unique: true,
-            type: Sequelize.STRING,
+          role: {
+            type: Sequelize.ENUM('Support_Staff', 'User', 'Admin'),
+            defaultValue: 'User',
           },
-          createdBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          updatedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          deletedAt: {
+          birthday: {
             type: Sequelize.DATE,
+            allowNull: false,
           },
-          deletedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
+
+          isActive: {
+            type: Sequelize.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
+          },
+          password: {
+            type: Sequelize.STRING,
+            allowNull: false,
+          },
+          email: {
+            type: Sequelize.STRING,
+            unique: true,
+            allowNull: false,
+          },
+          lname: {
+            type: Sequelize.STRING,
+            allowNull: false,
+          },
+          fname: {
+            type: Sequelize.STRING,
+            allowNull: false,
+          },
+          username: {
+            type: Sequelize.STRING,
+            allowNull: false,
           },
           createdAt: {
+            allowNull: false,
             type: Sequelize.DATE,
           },
           updatedAt: {
+            allowNull: false,
             type: Sequelize.DATE,
           },
           createdBy: {
@@ -77,7 +85,7 @@ module.exports = {
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
-      await queryInterface.dropTable('ticket_status', { transaction: t });
+      await queryInterface.dropTable('users', { transaction: t });
     });
   },
 };

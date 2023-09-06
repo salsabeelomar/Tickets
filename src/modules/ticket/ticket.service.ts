@@ -5,7 +5,6 @@ import { Transaction, Op } from 'sequelize';
 import { PROVIDER } from 'src/common/constant/providers.constant';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { TICKET_EVENTS } from 'src/common/events/ticket.events';
-import { STATUS } from 'src/common/types/Status.types';
 
 import { User } from '../user/models/user.model';
 import { TicketStatus } from '../ticket-status/models/ticket-status.model';
@@ -19,6 +18,8 @@ import { UserToken } from '../auth/dto/generate-Token.dto';
 import { ConfirmTicket } from './dto/confirm-ticket.dto';
 import { CheckExisting } from 'src/common/utils/checkExisting';
 import { SupportStaff } from '../support-staff/models/support-staff.model';
+import { SearchAssigneeDto } from './dto/search-assignee.dto';
+import { SearchStatusDto } from './dto/search-status.dto';
 
 @Injectable()
 export class TicketService {
@@ -50,7 +51,11 @@ export class TicketService {
       username: user.username,
       ticketId: newTicket.id,
     });
-    return newTicket;
+
+    return {
+      data: { newTicket },
+      msg: 'New Ticket Added Successfully',
+    };
   }
 
   async findAll() {
@@ -139,13 +144,13 @@ export class TicketService {
         transaction,
       },
     );
-    console.log(updateTic);
     this.logger.log(`Update the Ticket with Id ${id}`);
 
     return updateTic;
   }
 
   async update(att, condition, transaction: Transaction) {
+    console.log(att, '+++++++++++++++++++++++++++++++++');
     const updateTic = await this.ticketRepo.update(att, {
       where: condition,
       transaction,
@@ -170,28 +175,105 @@ export class TicketService {
       ],
     });
     this.logger.log(`Get Ticket with Id ${id}`);
-    return getTic.toJSON();
+    return {
+      ...getTic.toJSON(),
+    };
   }
+
   async search(querySearch: SearchTicketDto, transaction: Transaction) {
     const searched = await this.ticketRepo.scope('basic').findAll({
       include: [
         {
-          model: User,
-          as: 'staff',
-          attributes: ['id', 'username'],
-
-          where: {
-            username: {
-              [Op.like]: `%${querySearch.username}%`,
+          model: SupportStaff,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['email', 'username'],
+              where: {
+                username: {
+                  [Op.like]: `%${querySearch.username}%`,
+                },
+              },
             },
-          },
+          ],
         },
         {
           model: TicketStatus,
           attributes: ['id', 'status'],
           where: {
-            status: querySearch.status,
+            status: {
+              [Op.like]: `%${querySearch.status}%`,
+            },
           },
+        },
+      ],
+      // where: {
+      //   createdAt: {
+      //     [Op.between]: [querySearch.startDate, querySearch.endDate],
+      //   },
+      //   isConfirm: true,
+      // },
+      transaction,
+    });
+    return { data: { tickets: searched } };
+  }
+  async searchByStatus(statusDto: SearchStatusDto, transaction: Transaction) {
+    let where;
+    if (statusDto.startDate && statusDto.endDate)
+      where = {
+        isConfirm: true,
+        [Op.between]: [statusDto.startDate, statusDto.endDate],
+      };
+    else where = { isConfirm: true };
+    const searched = await this.ticketRepo.scope('basic').findAll({
+      include: [
+        {
+          model: SupportStaff,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['email', 'username'],
+            },
+          ],
+        },
+
+        {
+          model: TicketStatus,
+          attributes: ['id', 'status'],
+          where,
+        },
+      ],
+      where: {
+        isConfirm: true,
+      },
+      transaction,
+    });
+
+    return { data: { tickets: searched } };
+  }
+
+  async searchDataRang(querySearch: SearchTicketDto, transaction: Transaction) {
+    const searched = await this.ticketRepo.scope('basic').findAll({
+      include: [
+        {
+          model: SupportStaff,
+          include: [
+            {
+              model: User,
+              attributes: ['id', 'username'],
+              where: {
+                username: {
+                  [Op.like]: `%${querySearch.username}%`,
+                },
+              },
+            },
+          ],
+        },
+        {
+          model: TicketStatus,
+          attributes: ['id', 'status'],
         },
       ],
       where: {
@@ -204,6 +286,33 @@ export class TicketService {
     });
     return searched;
   }
+  async searchAssignee(username: SearchAssigneeDto, transaction: Transaction) {
+    const searched = await this.ticketRepo.scope('basic').findAll({
+      include: [
+        {
+          model: SupportStaff,
+          include: [
+            {
+              model: User,
+              attributes: ['id', 'username'],
+              where: {
+                username: {
+                  [Op.like]: `%${username}%`,
+                },
+              },
+            },
+          ],
+        },
+        {
+          model: TicketStatus,
+          attributes: ['id', 'status'],
+        },
+      ],
+      transaction,
+    });
+    return searched;
+  }
+
   async getOpenTic(transaction: Transaction) {
     const searched = await this.ticketRepo.scope('scope').findAll({
       include: [
@@ -216,7 +325,7 @@ export class TicketService {
           model: TicketStatus,
           attributes: ['id', 'status'],
           where: {
-            status: STATUS.OPEN,
+            status: 'OPEN',
           },
         },
       ],
@@ -274,15 +383,6 @@ export class TicketService {
     transaction: Transaction,
   ) {
     if (!confirm.isConfirm) return 'Decline Accept ';
-
-    // const openTic = await this.openTicket(
-    //   {
-    //     status: STATUS.OPEN,
-    //     ticketId: confirm.ticketId,
-    //   },
-    //   userId,
-    //   transaction,
-    // );
     await this.updatedOneForUser(
       {
         id: confirm.ticketId,
@@ -296,7 +396,8 @@ export class TicketService {
       userId,
       ticketId: confirm.ticketId,
     });
-
-    return `Ticket with #${confirm.ticketId} Accepted`;
+    return {
+      msg: `Ticket with #${confirm.ticketId} Accepted`,
+    };
   }
 }

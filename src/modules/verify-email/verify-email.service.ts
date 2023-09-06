@@ -1,9 +1,8 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { GatewayTimeoutException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EmailDto } from './dto/email.dto';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { activeStaff } from './dto/confirm-staff.dto';
-import { STATUS } from 'src/common/types/Status.types';
 import { ConfirmTic } from './dto/confirm-ticket.dto';
 import { ResponseTick } from './dto/receive-response.dto';
 import { ConfigService } from '@nestjs/config';
@@ -86,6 +85,15 @@ export class VerifyEmailService {
     });
     this.logger.log(`Send Email to Ticket Is update status ${status} `);
   }
+  async assignedTicket(user) {
+    await this.mailerService.sendMail({
+      to: user.email,
+      from: 'noreply@nestjs.com',
+      html: `<h1>welcome ${user.username}</h1>
+       <h3> Your Have new Assignee Ticket  Check Your Account </h3>`,
+    });
+    this.logger.log(`Assign Ticket to User ${user.email} `);
+  }
   async receiveRespTic(user: ResponseTick) {
     await this.mailerService.sendMail({
       to: user.email,
@@ -102,8 +110,8 @@ export class VerifyEmailService {
       to: staff.email,
       from: 'noreply@nestjs.com',
       subject: `You Have schedule Tickets `,
-      html: `<h1>welcome ${staff.username}</h1>
-       <h3> You Have schedule Tickets   </h3>`,
+      html: `<h1>
+       You Have Late Tickets </h1> `,
     });
   }
 }

@@ -1,10 +1,10 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const tracking = sequelize.define('tracking', {
+  const assignment_tickets = sequelize.define('assignment_tickets', {
     assignmentId: DataTypes.INTEGER
   }, {});
-  tracking.associate = function(models) {
+  assignment_tickets.associate = function(models) {
     // associations can be defined here
   };
-  return tracking;
+  return assignment_tickets;
 };

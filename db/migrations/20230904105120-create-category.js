@@ -3,7 +3,7 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
       await queryInterface.createTable(
-        'ticket_status',
+        'categories',
         {
           id: {
             allowNull: false,
@@ -11,36 +11,13 @@ module.exports = {
             primaryKey: true,
             type: Sequelize.INTEGER,
           },
-          status: {
-            allowNull: false,
-            unique: true,
+          category: {
             type: Sequelize.STRING,
-          },
-          createdBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          updatedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          deletedAt: {
-            type: Sequelize.DATE,
-          },
-          deletedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
+            unique: true,
+            allowNull: false,
           },
           createdAt: {
+            allowNull: false,
             type: Sequelize.DATE,
           },
           updatedAt: {
@@ -77,7 +54,7 @@ module.exports = {
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
-      await queryInterface.dropTable('ticket_status', { transaction: t });
+      await queryInterface.dropTable('categories', { transaction: t });
     });
   },
 };

@@ -1,9 +1,9 @@
 'use strict';
 module.exports = {
-  up(queryInterface, Sequelize) {
+  up: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
       await queryInterface.createTable(
-        'tracking',
+        'tickets',
         {
           id: {
             allowNull: false,
@@ -13,6 +13,7 @@ module.exports = {
           },
           statusId: {
             type: Sequelize.INTEGER,
+
             references: {
               model: 'ticket_status',
               key: 'id',
@@ -22,6 +23,7 @@ module.exports = {
           },
           adminId: {
             type: Sequelize.INTEGER,
+
             references: {
               model: 'users',
               key: 'id',
@@ -31,6 +33,7 @@ module.exports = {
           },
           staffId: {
             type: Sequelize.INTEGER,
+
             references: {
               model: 'users',
               key: 'id',
@@ -38,20 +41,41 @@ module.exports = {
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
           },
-          ticketId: {
+          prioritize: {
+            type: Sequelize.ENUM('Low', 'High', 'Critical', 'Medium'),
+            defaultValue: 'Low',
+          },
+          categoryId: {
             type: Sequelize.INTEGER,
+            allowNull: false,
             references: {
-              model: 'tickets',
+              model: 'categories',
               key: 'id',
             },
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
           },
-          comments: {
-            type: Sequelize.STRING,
+          isConfirm: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false,
           },
-          scheduleFor: {
-            type: Sequelize.DATE,
+          tagId: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            references: {
+              model: 'tags',
+              key: 'id',
+            },
+            onUpdate: 'CASCADE',
+            onDelete: 'CASCADE',
+          },
+          title: {
+            type: Sequelize.STRING,
+            allowNull: false,
+          },
+          description: {
+            type: Sequelize.STRING,
+            allowNull: false,
           },
           createdBy: {
             type: Sequelize.INTEGER,
@@ -59,8 +83,6 @@ module.exports = {
               model: 'users',
               key: 'id',
             },
-            onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
           },
           updatedBy: {
             type: Sequelize.INTEGER,
@@ -68,8 +90,6 @@ module.exports = {
               model: 'users',
               key: 'id',
             },
-            onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
           },
           deletedAt: {
             type: Sequelize.DATE,
@@ -80,11 +100,9 @@ module.exports = {
               model: 'users',
               key: 'id',
             },
-            onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
           },
-
           createdAt: {
+            allowNull: false,
             type: Sequelize.DATE,
           },
           updatedAt: {
@@ -97,7 +115,7 @@ module.exports = {
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
-      await queryInterface.dropTable('Trackings', { transaction: t });
+      await queryInterface.dropTable('tickets', { transaction: t });
     });
   },
 };

@@ -8,6 +8,7 @@ import {
   BelongsTo,
   Model,
 } from 'sequelize-typescript';
+import { AssignmentTickets } from 'src/modules/assignment-ticket/models/assignment.model';
 import { SupportStaff } from 'src/modules/support-staff/models/support-staff.model';
 import { TicketStatus } from 'src/modules/ticket-status/models/ticket-status.model';
 import { Ticket } from 'src/modules/ticket/models/ticket.model';
@@ -33,17 +34,11 @@ export class Tracking extends Model {
   })
   statusId: number;
 
-  @ForeignKey(() => User)
+  @ForeignKey(() => AssignmentTickets)
   @Column({
     type: DataType.INTEGER,
   })
-  adminId: number;
-
-  @ForeignKey(() => SupportStaff)
-  @Column({
-    type: DataType.INTEGER,
-  })
-  staffId: number;
+  assignmentId: number;
 
   @ForeignKey(() => Ticket)
   @Column({
@@ -62,6 +57,11 @@ export class Tracking extends Model {
     defaultValue: false,
   })
   sendEmail: boolean;
+
+  @Column({
+    type: DataType.DATE,
+  })
+  scheduledFor: Date;
 
   @ForeignKey(() => User)
   @Column({
@@ -84,8 +84,8 @@ export class Tracking extends Model {
   @BelongsTo(() => User)
   users: User;
 
-  @BelongsTo(() => SupportStaff, 'staffId')
-  staff: SupportStaff;
+  @BelongsTo(() => AssignmentTickets)
+  assignment: SupportStaff;
 
   @BelongsTo(() => Ticket)
   ticket: Ticket;

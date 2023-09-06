@@ -1,23 +1,21 @@
 import { Transform } from 'class-transformer';
-import { IsDate, IsString } from 'class-validator';
+import { IsDate, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class SearchTicketDto {
+export class SearchAssigneeDto {
   @ApiProperty()
   @IsString()
   username: string;
 
   @ApiProperty()
-  @IsString()
-  status: string;
+  @Transform((value) => new Date(value.value))
+  @IsOptional()
+  @IsDate()
+  startDate?: Date;
 
   @ApiProperty()
   @Transform((value) => new Date(value.value))
   @IsDate()
-  startDate: Date;
-
-  @ApiProperty()
-  @Transform((value) => new Date(value.value))
-  @IsDate()
-  endDate: Date;
+  @IsOptional()
+  endDate?: Date;
 }

@@ -24,6 +24,9 @@ import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UserToken } from '../auth/dto/generate-Token.dto';
 import { ConfirmTicket } from './dto/confirm-ticket.dto';
+import { SearchAssigneeDto } from './dto/search-assignee.dto';
+import { SearchStatusDto } from './dto/search-status.dto';
+import { NotActive } from 'src/common/decorator/isActive.decorator';
 
 @UseInterceptors(TransactionInter)
 @Controller('ticket')
@@ -63,7 +66,25 @@ export class TicketController {
     return getOpened;
   }
 
-  @Role(ROLES.SUPPORT_STAFF)
+  @NotActive()
+  @Get('search/assignee')
+  searchAssignee(
+    @Query() searchAssigneeDto: SearchAssigneeDto,
+    @User() user: UserToken,
+    @TransactionDeco() trans: Transaction,
+  ) {
+    return this.ticketService.searchAssignee(searchAssigneeDto, trans);
+  }
+  @NotActive()
+  @Get('search/status')
+  searchS(
+    @Query() searchStatusDto: SearchStatusDto,
+    @User() user: UserToken,
+    @TransactionDeco() trans: Transaction,
+  ) {
+    return this.ticketService.searchByStatus(searchStatusDto, trans);
+  }
+  @NotActive()
   @Get('search')
   search(
     @Query() query: SearchTicketDto,

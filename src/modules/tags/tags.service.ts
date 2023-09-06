@@ -34,7 +34,12 @@ export class TagsService {
     );
     this.logger.log('tags created successfully');
 
-    return newTag;
+    return {
+      data: {
+        tag: newTag,
+      },
+      msg: 'New Tag added successfully',
+    };
   }
 
   async findAll(transaction: Transaction) {
@@ -42,7 +47,11 @@ export class TagsService {
       transaction,
     });
     this.logger.log(`Get All Tags`);
-    return tags;
+    return {
+      data: {
+        tags,
+      },
+    };
   }
 
   async findById(id: number, transaction: Transaction) {
@@ -56,7 +65,9 @@ export class TagsService {
     });
     this.logger.log(`Get Tag By Id ${id} `);
 
-    return tag;
+    return {
+      data: { tag },
+    };
   }
 
   async findByTagName(tag: string, transaction: Transaction) {

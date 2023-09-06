@@ -3,7 +3,7 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
       await queryInterface.createTable(
-        'ticket_status',
+        'support_staffs',
         {
           id: {
             allowNull: false,
@@ -11,36 +11,31 @@ module.exports = {
             primaryKey: true,
             type: Sequelize.INTEGER,
           },
+          adminId: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: 'users',
+              key: 'id',
+            },
+
+            as: 'admin',
+
+            allowNull: true,
+          },
+          userId: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: 'users',
+              as: 'staff',
+              key: 'id',
+            },
+          },
           status: {
-            allowNull: false,
-            unique: true,
-            type: Sequelize.STRING,
-          },
-          createdBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          updatedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          deletedAt: {
-            type: Sequelize.DATE,
-          },
-          deletedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
+            type: Sequelize.ENUM('Pending', 'Accept', 'Decline'),
+            defaultValue: 'Pending',
           },
           createdAt: {
+            allowNull: false,
             type: Sequelize.DATE,
           },
           updatedAt: {
@@ -77,7 +72,7 @@ module.exports = {
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
-      await queryInterface.dropTable('ticket_status', { transaction: t });
+      await queryInterface.dropTable('support_staffs', { transaction: t });
     });
   },
 };

@@ -3,7 +3,7 @@ module.exports = {
   up(queryInterface, Sequelize) {
     return queryInterface.sequelize.transaction(async (t) => {
       await queryInterface.createTable(
-        'users',
+        'trackings',
         {
           id: {
             allowNull: false,
@@ -11,48 +11,48 @@ module.exports = {
             primaryKey: true,
             type: Sequelize.INTEGER,
           },
-          role: {
-            type: Sequelize.ENUM('Support_Staff', 'User', 'Admin'),
-            defaultValue: 'User',
+          statusId: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: 'ticket_status',
+              key: 'id',
+            },
           },
-          birthday: {
-            type: Sequelize.DATE,
-            allowNull: false,
+          adminId: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: 'users',
+              key: 'id',
+            },
+            onUpdate: 'CASCADE',
+            onDelete: 'CASCADE',
           },
-
-          isActive: {
-            type: Sequelize.BOOLEAN,
-            allowNull: false,
+          assignmentId: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: 'assignment_tickets',
+              key: 'id',
+            },
+          },
+          ticketId: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: 'tickets',
+              key: 'id',
+            },
+            onUpdate: 'CASCADE',
+            onDelete: 'CASCADE',
+          },
+          comments: {
+            type: Sequelize.STRING,
             defaultValue: false,
           },
-          password: {
-            type: Sequelize.STRING,
-            allowNull: false,
-          },
-          email: {
-            type: Sequelize.STRING,
-            unique: true,
-            allowNull: false,
-          },
-          lname: {
-            type: Sequelize.STRING,
-            allowNull: false,
-          },
-          fname: {
-            type: Sequelize.STRING,
-            allowNull: false,
-          },
-          username: {
-            type: Sequelize.STRING,
-            allowNull: false,
-          },
-          createdAt: {
-            allowNull: false,
+          scheduleFor: {
             type: Sequelize.DATE,
           },
-          updatedAt: {
-            allowNull: false,
-            type: Sequelize.DATE,
+          sendEmail: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false,
           },
           createdBy: {
             type: Sequelize.INTEGER,
@@ -60,8 +60,6 @@ module.exports = {
               model: 'users',
               key: 'id',
             },
-            onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
           },
           updatedBy: {
             type: Sequelize.INTEGER,
@@ -69,8 +67,6 @@ module.exports = {
               model: 'users',
               key: 'id',
             },
-            onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
           },
           deletedAt: {
             type: Sequelize.DATE,
@@ -81,8 +77,13 @@ module.exports = {
               model: 'users',
               key: 'id',
             },
-            onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
+          },
+          createdAt: {
+            allowNull: false,
+            type: Sequelize.DATE,
+          },
+          updatedAt: {
+            type: Sequelize.DATE,
           },
         },
         { transaction: t },
@@ -91,7 +92,7 @@ module.exports = {
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
-      await queryInterface.dropTable('users', { transaction: t });
+      await queryInterface.dropTable('trackings', { transaction: t });
     });
   },
 };

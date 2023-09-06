@@ -8,14 +8,15 @@ import {
   BelongsTo,
   Scopes,
   Model,
+  HasMany,
 } from 'sequelize-typescript';
 import { ASSIGNMENT } from 'src/common/types/Assignment.types';
 import { SupportStaff } from 'src/modules/support-staff/models/support-staff.model';
 import { Ticket } from 'src/modules/ticket/models/ticket.model';
+import { Tracking } from 'src/modules/tracking/models/tracking.model';
 import { User } from 'src/modules/user/models/user.model';
 
 @Scopes(() => ({
-  full: {},
   basic: {
     attributes: {
       exclude: ['updatedAt', 'updatedBy', 'deletedAt', 'deletedBy'],
@@ -91,4 +92,7 @@ export class AssignmentTickets extends Model {
 
   @BelongsTo(() => Ticket)
   ticket: Ticket;
+
+  @HasMany(() => Tracking)
+  trackings: Tracking[];
 }

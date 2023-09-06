@@ -1,9 +1,9 @@
-'use strict';
+('use strict');
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
       await queryInterface.createTable(
-        'ticket_status',
+        'assignment_tickets',
         {
           id: {
             allowNull: false,
@@ -11,64 +11,34 @@ module.exports = {
             primaryKey: true,
             type: Sequelize.INTEGER,
           },
-          status: {
-            allowNull: false,
-            unique: true,
-            type: Sequelize.STRING,
+          staffId: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: 'support_staffs',
+              key: 'id',
+            },
           },
-          createdBy: {
+          adminId: {
             type: Sequelize.INTEGER,
             references: {
               model: 'users',
               key: 'id',
             },
           },
-          updatedBy: {
+          ticketId: {
             type: Sequelize.INTEGER,
             references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          deletedAt: {
-            type: Sequelize.DATE,
-          },
-          deletedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
+              model: 'tickets',
               key: 'id',
             },
           },
           createdAt: {
+            allowNull: false,
             type: Sequelize.DATE,
           },
           updatedAt: {
+            allowNull: false,
             type: Sequelize.DATE,
-          },
-          createdBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          updatedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
-          },
-          deletedAt: {
-            type: Sequelize.DATE,
-          },
-          deletedBy: {
-            type: Sequelize.INTEGER,
-            references: {
-              model: 'users',
-              key: 'id',
-            },
           },
         },
         { transaction: t },
@@ -77,7 +47,7 @@ module.exports = {
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction(async (t) => {
-      await queryInterface.dropTable('ticket_status', { transaction: t });
+      queryInterface.dropTable('assignment_tickets', { transaction: t });
     });
   },
 };

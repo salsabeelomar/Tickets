@@ -28,7 +28,7 @@ export class UserService {
 
     const hashPass = bcrypt.hashSync(user.password, 10);
 
-    const newUser = await this.userRepo.scope('basic').create(
+    const newUser = await this.userRepo.create(
       {
         ...user,
         password: hashPass,

@@ -50,7 +50,8 @@ export class Feedback extends Model {
   @Column({
     type: DataType.INTEGER,
   })
-  createdBy: number;
+  create
+  dBy: number;
 
   @ForeignKey(() => User)
   @Column({

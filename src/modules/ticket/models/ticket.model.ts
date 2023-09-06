@@ -8,17 +8,17 @@ import {
   BelongsTo,
   Scopes,
   Model,
+  HasMany,
 } from 'sequelize-typescript';
 import { PRIORITIZE } from 'src/common/types/Prioritize.types';
-import { AssignmentTickets } from 'src/modules/assignment-ticket/models/assignment.model';
 import { Category } from 'src/modules/category/models/category.model';
 import { SupportStaff } from 'src/modules/support-staff/models/support-staff.model';
 import { Tags } from 'src/modules/tags/models/tag.model';
 import { TicketStatus } from 'src/modules/ticket-status/models/ticket-status.model';
+import { Tracking } from 'src/modules/tracking/models/tracking.model';
 import { User } from 'src/modules/user/models/user.model';
 
 @Scopes(() => ({
-  full: {},
   basic: {
     attributes: {
       exclude: ['updatedAt', 'updatedBy', 'deletedAt', 'deletedBy'],
@@ -133,4 +133,7 @@ export class Ticket extends Model {
 
   @BelongsTo(() => TicketStatus)
   ticketStatus: TicketStatus;
+
+  @HasMany(() => Tracking)
+  trackings: Tracking[];
 }

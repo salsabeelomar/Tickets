@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
 import { PROVIDER } from 'src/common/constant/providers.constant';
@@ -6,8 +6,6 @@ import { Feedback } from './models/feedback.model';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { Transaction } from 'sequelize';
 import { TicketService } from '../ticket/ticket.service';
-import { CheckExisting } from 'src/common/utils/checkExisting';
-import { STATUS } from 'src/common/types/Status.types';
 
 @Injectable()
 export class FeedbacksService {
@@ -23,14 +21,9 @@ export class FeedbacksService {
     transaction: Transaction,
   ) {
     const ticket = await this.ticketService.getTicById(newFeed.ticketId);
-    CheckExisting(
-      !(ticket.ticketStatus.status !== STATUS.RESOLVED),
+    if (ticket.ticketStatus.status !== 'Resolved')
+      throw new BadRequestException('This Ticket Not Resolved Yet');
 
-      {
-        msg: 'This Ticket Not Resolved Yet',
-        trace: 'Feedback.create',
-      },
-    );
     const feedback = await this.feedbackRepo.create(
       {
         ...newFeed,

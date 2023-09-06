@@ -9,6 +9,7 @@ export const config = () => ({
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT),
     host: process.env.DB_HOST,
+    underscored: true,
   },
   JwtSecret: process.env.JWT_SECRET,
   Port: process.env.PORT,

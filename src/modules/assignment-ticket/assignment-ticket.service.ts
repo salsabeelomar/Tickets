@@ -7,9 +7,10 @@ import { AssignmentTickets } from './models/assignment.model';
 import { PROVIDER } from 'src/common/constant/providers.constant';
 import { TicketService } from '../ticket/ticket.service';
 import { ASSIGNMENT } from 'src/common/types/Assignment.types';
+import { TICKET_EVENTS } from 'src/common/events/ticket.events';
 import { VerifyEmailService } from '../verify-email/verify-email.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UserService } from '../user/user.service';
+import { StaffService } from '../support-staff/support-staff.service';
 
 @Injectable()
 export class AssignmentTicketService {
@@ -17,6 +18,9 @@ export class AssignmentTicketService {
   constructor(
     @Inject(PROVIDER.ASSIGNMENT_TICKET)
     private readonly assignmentRepo: typeof AssignmentTickets,
+    private readonly verifyEmailService: VerifyEmailService,
+    private readonly StaffService: StaffService,
+    private readonly eventEmitter: EventEmitter2,
     private readonly ticketService: TicketService,
   ) {}
   async create(
@@ -49,14 +53,15 @@ export class AssignmentTicketService {
       throw new BadRequestException('Ticket Not Confirmed Yet');
 
     const assignment = await this.create(newAssignment, adminId, transaction);
-;
+
     await this.ticketService.updateForAdmin(
       newAssignment.ticketId,
       newAssignment.staffId,
       adminId,
       transaction,
     );
-    return assignment;
+    await this.notify(newAssignment.staffId, newAssignment.ticketId);
+    return { data: { newAssignee: assignment }, msg: 'Assigned Success' };
   }
 
   async unAssign(
@@ -64,10 +69,10 @@ export class AssignmentTicketService {
     adminId: number,
     transaction: Transaction,
   ) {
-    const check = await this.checkAssign(
-      { ...newAssignment, assigned: ASSIGNMENT.ASSIGNED },
-      transaction,
-    );
+    const check = await this.checkAssign({
+      ...newAssignment,
+      assigned: ASSIGNMENT.ASSIGNED,
+    });
     if (!check) return { msg: `Ticket Not assigned Yet` };
 
     const createAssignment = await this.assignmentRepo.create(
@@ -86,10 +91,10 @@ export class AssignmentTicketService {
     this.logger.log(
       `Admin Assign Ticket with #${newAssignment.ticketId} to #${newAssignment.staffId}`,
     );
-    return createAssignment;
+    return { data: { newAssignee: createAssignment }, msg: 'Assigned Success' };
   }
 
-  async checkAssign(assignment: CreateAssignmentDto, transaction: Transaction) {
+  async checkAssign(assignment: CreateAssignmentDto) {
     const confirmationTic = await this.ticketService.CheckConfirm(
       assignment.ticketId,
     );
@@ -114,15 +119,14 @@ export class AssignmentTicketService {
   remove(id: number) {
     return `This action removes a #${id} assignmentTicket`;
   }
-  async notify() {
-    //   const getNotified = await this.eventEmitter.emit(TICKET_EVENTS.ASSIGNMENT, {
-    //     notifiedId: ticInfo.staff.id,
-    //     ticketId: ticket.id,
-    //     status: ticket.status,
-    //   });
-    //   return this.verifyEmailService.sendUpdateTicket(ticket.status, {
-    //     ...ticInfo.toJSON().staff,
-    //     title: ticInfo.title,
-    //   });
+  async notify(staffId: number, ticketId: number) {
+    const getNotified = await this.StaffService.findStaffById(staffId);
+
+    this.eventEmitter.emit(TICKET_EVENTS.ASSIGNMENT, {
+      notifiedId: getNotified.userId,
+      ticketId,
+      status: ASSIGNMENT.ASSIGNED,
+    });
+    return this.verifyEmailService.assignedTicket(getNotified.user);
   }
 }

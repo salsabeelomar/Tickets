@@ -17,6 +17,7 @@ import { Ticket } from 'src/modules/ticket/models/ticket.model';
   basic: {
     attributes: {
       exclude: [
+        'password',
         'createdAt',
         'updatedAt',
         'updatedBy',

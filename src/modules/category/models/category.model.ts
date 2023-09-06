@@ -12,7 +12,6 @@ import {
 import { User } from 'src/modules/user/models/user.model';
 
 @Scopes(() => ({
-  full: {},
   basic: {
     attributes: ['id', 'category'],
   },

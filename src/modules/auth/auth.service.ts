@@ -36,12 +36,16 @@ export class AuthService {
         isActive: true,
       }),
     });
+    delete addUser.user.password;
     return {
-      ...addUser,
-      token: this.userService.generateToken({
-        ...addUser.user,
-        isActive: false,
-      }),
+      data: {
+        ...addUser,
+        token: this.userService.generateToken({
+          ...addUser.user,
+          isActive: false,
+        }),
+      },
+      msg: 'Check Email; to Verify Account',
     };
   }
 
@@ -76,8 +80,10 @@ export class AuthService {
 
     this.winstonLogger.log(` User with ID=${getUser.id} Signed `);
     return {
-      ...userData,
-      token: this.userService.generateToken(userData),
+      data: {
+        ...userData,
+        token: this.userService.generateToken(userData),
+      },
     };
   }
 
