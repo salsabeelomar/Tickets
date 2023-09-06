@@ -150,7 +150,6 @@ export class TicketService {
   }
 
   async update(att, condition, transaction: Transaction) {
-    console.log(att, '+++++++++++++++++++++++++++++++++');
     const updateTic = await this.ticketRepo.update(att, {
       where: condition,
       transaction,
@@ -185,6 +184,7 @@ export class TicketService {
       include: [
         {
           model: SupportStaff,
+          attributes: ['id'],
           include: [
             {
               model: User,
@@ -208,12 +208,12 @@ export class TicketService {
           },
         },
       ],
-      // where: {
-      //   createdAt: {
-      //     [Op.between]: [querySearch.startDate, querySearch.endDate],
-      //   },
-      //   isConfirm: true,
-      // },
+      where: {
+        createdAt: {
+          [Op.between]: [querySearch.startDate, querySearch.endDate],
+        },
+        isConfirm: true,
+      },
       transaction,
     });
     return { data: { tickets: searched } };
@@ -223,13 +223,17 @@ export class TicketService {
     if (statusDto.startDate && statusDto.endDate)
       where = {
         isConfirm: true,
-        [Op.between]: [statusDto.startDate, statusDto.endDate],
+        createdAt: {
+          [Op.between]: [statusDto.startDate, statusDto.endDate],
+        },
       };
     else where = { isConfirm: true };
+
     const searched = await this.ticketRepo.scope('basic').findAll({
       include: [
         {
           model: SupportStaff,
+          attributes: ['id'],
           include: [
             {
               model: User,
@@ -238,66 +242,45 @@ export class TicketService {
             },
           ],
         },
-
         {
           model: TicketStatus,
           attributes: ['id', 'status'],
-          where,
         },
       ],
-      where: {
-        isConfirm: true,
-      },
+      where,
       transaction,
     });
 
     return { data: { tickets: searched } };
   }
 
-  async searchDataRang(querySearch: SearchTicketDto, transaction: Transaction) {
-    const searched = await this.ticketRepo.scope('basic').findAll({
-      include: [
-        {
-          model: SupportStaff,
-          include: [
-            {
-              model: User,
-              attributes: ['id', 'username'],
-              where: {
-                username: {
-                  [Op.like]: `%${querySearch.username}%`,
-                },
-              },
-            },
-          ],
-        },
-        {
-          model: TicketStatus,
-          attributes: ['id', 'status'],
-        },
-      ],
-      where: {
-        createdAt: {
-          [Op.between]: [querySearch.startDate, querySearch.endDate],
-        },
+  async searchAssignee(
+    usernameDto: SearchAssigneeDto,
+    transaction: Transaction,
+  ) {
+    let where;
+    if (usernameDto.startDate && usernameDto.endDate)
+      where = {
         isConfirm: true,
-      },
-      transaction,
-    });
-    return searched;
-  }
-  async searchAssignee(username: SearchAssigneeDto, transaction: Transaction) {
+        createdAt: {
+          [Op.between]: [usernameDto.startDate, usernameDto.endDate],
+        },
+      };
+    else where = { isConfirm: true };
+    console.log(where);
     const searched = await this.ticketRepo.scope('basic').findAll({
       include: [
         {
           model: SupportStaff,
+          attributes: ['id'],
           include: [
             {
               model: User,
-              attributes: ['id', 'username'],
+              as: 'user',
+              attributes: ['email', 'username'],
               where: {
                 username: {
-                  [Op.like]: `%${username}%`,
+                  [Op.like]: `%${usernameDto.username}%`,
                 },
               },
             },
@@ -308,9 +291,10 @@ export class TicketService {
           attributes: ['id', 'status'],
         },
       ],
+      where,
       transaction,
     });
-    return searched;
+    return { data: { tickets: searched } };
   }
 
   async getOpenTic(transaction: Transaction) {
