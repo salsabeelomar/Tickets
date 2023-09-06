@@ -1,6 +1,6 @@
 import {
   Controller,
-  Get,
+  ParseIntPipe,
   Post,
   Body,
   Patch,
@@ -17,7 +17,7 @@ import { Transaction } from 'sequelize';
 import { ROLES } from 'src/common/types/Roles.types';
 import { Role } from 'src/common/decorator/role.decorator';
 
-@Controller('feedbacks')
+@Controller('feedback')
 export class FeedbacksController {
   constructor(private readonly feedbacksService: FeedbacksService) {}
 
@@ -31,26 +31,22 @@ export class FeedbacksController {
     return this.feedbacksService.create(createFeedbackDto, user.id, trans);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.feedbacksService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.feedbacksService.findOne(+id);
-  // }
-
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateFeedbackDto: UpdateFeedbackDto,
+    @User() user: UserToken,
+    @TransactionDeco() trans: Transaction,
   ) {
-    return this.feedbacksService.update(+id, updateFeedbackDto);
+    return this.feedbacksService.update(id, user.id, updateFeedbackDto, trans);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.feedbacksService.remove(+id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @User() user: UserToken,
+    @TransactionDeco() trans: Transaction,
+  ) {
+    return this.feedbacksService.remove(id, user.id, trans);
   }
 }

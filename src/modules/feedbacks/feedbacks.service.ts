@@ -24,25 +24,52 @@ export class FeedbacksService {
       newFeed.ticketId,
       transaction,
     );
-    if (ticket.ticketStatus.status !== 'Resolved')
-      throw new BadRequestException('This Ticket Not Resolved Yet');
 
-    const feedback = await this.feedbackRepo.create(
+    if (
+      ticket.ticketStatus.status === 'Resolved' ||
+      ticket.ticketStatus.status === 'Closed'
+    ) {
+      const feedback = await this.feedbackRepo.create(
+        {
+          ...newFeed,
+          createdBy: userId,
+        },
+        { transaction },
+      );
+      this.logger.log(`create Feedback For Ticket ${newFeed.ticketId}`);
+      return { data: { feedback: feedback.toJSON() } };
+    } else
+      throw new BadRequestException(
+        `Tickets Not Resolved Or Closed To add Feedbacks`,
+      );
+  }
+
+  async update(
+    id: number,
+    userId: number,
+    updateFeedbackDto: UpdateFeedbackDto,
+    transaction: Transaction,
+  ) {
+    await this.feedbackRepo.update(
       {
-        ...newFeed,
-        createdBy: userId,
+        updateFeedbackDto,
+        updatedBy: userId,
       },
-      { transaction },
+      { where: { id, userId }, transaction },
     );
-    this.logger.log(`create Feedback For Ticket ${newFeed.ticketId}`);
-    return { feedback: feedback.toJSON() };
+    this.logger.log(`Feedback Updated Successfully`);
+    return { msg: `Feedback Updated Successfully` };
   }
 
-  update(id: number, updateFeedbackDto: UpdateFeedbackDto) {
-    return `This action updates a #${id} feedback`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} feedback`;
+  async remove(id: number, userId: number, transaction: Transaction) {
+    await this.feedbackRepo.update(
+      {
+        deletedAt: new Date(),
+        deletedBy: userId,
+      },
+      { where: { id, userId }, transaction },
+    );
+    this.logger.warn(`Feedback Deleted Successfully`);
+    return { msg: `Feedback Deleted Successfully` };
   }
 }
