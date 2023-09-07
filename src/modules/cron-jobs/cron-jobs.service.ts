@@ -81,7 +81,7 @@ export class CronJobsService {
             include: [
               {
                 model: TicketStatus,
-                attributes: [],
+                attributes: ['status'],
                 where: {
                   status: 'Open',
                 },
