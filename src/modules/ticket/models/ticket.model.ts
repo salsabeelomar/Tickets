@@ -24,6 +24,14 @@ import { User } from 'src/modules/user/models/user.model';
       exclude: ['updatedAt', 'updatedBy', 'deletedAt', 'deletedBy'],
     },
   },
+  withStatus:{
+    include: [
+      {
+        model: TicketStatus,
+        attributes: ['status'],
+      },
+    ],
+  }
 }))
 @Table({
   tableName: 'tickets',

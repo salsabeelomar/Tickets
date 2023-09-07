@@ -359,19 +359,12 @@ export class TicketService {
   }
 
   async CheckConfirm(ticketId: number) {
-    const checkCon = await this.ticketRepo.scope('basic').findOne({
-      include: [
-        {
-          model: TicketStatus,
-          attributes: ['status'],
-        },
-      ],
+    const checkCon = await this.ticketRepo.scope('withStatus').findOne({
       where: {
         [Op.and]: [{ id: ticketId }],
       },
     });
     this.logger.log(`Checking the Ticket Is Confirmed ..`);
-
 
     if (!checkCon?.isConfirm)
       throw new BadRequestException('Ticket Not Confirmed Yet');

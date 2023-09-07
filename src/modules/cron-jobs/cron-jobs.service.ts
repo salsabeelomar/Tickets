@@ -56,11 +56,13 @@ export class CronJobsService {
         ],
       });
       this.logger.log(`Cron job for Late Schedule finished At : ${new Date()}`);
-      lateSch.map((ele) => {
-        this.verifyEmailService.sendLateEmails({
-          email: ele.assigned.user.email,
-        });
-      });
+      Promise.all(
+        lateSch.map((ele) =>
+          this.verifyEmailService.sendLateEmails({
+            email: ele.assigned.user.email,
+          }),
+        ),
+      );
     } catch (error) {
       throw new Error(error);
     }
@@ -69,13 +71,22 @@ export class CronJobsService {
   async getLateAssign() {
     try {
       this.logger.log(`Cron job for Late Assigned start At : ${new Date()}`);
-      const twoDaysAgo = new Date();
+      const twoDaysAgo = new Date().setDate(new Date().getDate() - 2);
       const latAssign = await this.assignmentRepo.findAll({
         attributes: ['id'],
         include: [
           {
             model: Tracking,
             attributes: ['id'],
+            include: [
+              {
+                model: TicketStatus,
+                attributes: [],
+                where: {
+                  status: 'Open',
+                },
+              },
+            ],
             where: {
               createdAt: {
                 [Op.gt]: twoDaysAgo,
@@ -84,11 +95,13 @@ export class CronJobsService {
           },
         ],
       });
-      latAssign.map((ele) => {
-        this.verifyEmailService.sendLateEmails({
-          email: ele.user.email,
-        });
-      });
+      Promise.all(
+        latAssign.map((ele) =>
+          this.verifyEmailService.sendLateEmails({
+            email: ele.user.email,
+          }),
+        ),
+      );
       this.logger.log(`Cron job for Late Assigned finished At : ${new Date()}`);
     } catch (error) {
       throw new Error(error);

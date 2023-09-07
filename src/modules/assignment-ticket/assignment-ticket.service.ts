@@ -1,7 +1,6 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { CreateAssignmentDto } from './dto/create-assignment-ticket.dto';
-import { UpdateAssignmentTicketDto } from './dto/update-assignment-ticket.dto';
 import { WinstonLogger } from 'src/common/logger/winston.logger';
 import { AssignmentTickets } from './models/assignment.model';
 import { PROVIDER } from 'src/common/constant/providers.constant';
