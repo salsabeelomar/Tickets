@@ -16,7 +16,6 @@ import { TransactionDeco } from 'src/common/decorator/transaction.decorator';
 import { TransactionInter } from 'src/common/interceptor/Transaction.interceptor';
 
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Role } from 'src/common/decorator/role.decorator';
 import { ROLES } from 'src/common/types/Roles.types';
 @ApiTags('Auth')
 @UseInterceptors(TransactionInter)

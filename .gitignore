@@ -13,7 +13,6 @@ lerna-debug.log*
 
 # OS
 .DS_Store
-.env
 # Tests
 /coverage
 /.nyc_output
@@ -28,9 +27,9 @@ lerna-debug.log*
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 
+config.bat
